@@ -1,0 +1,43 @@
+<@row>
+    <@columns>
+	<div class="container">
+            <h2 class="heading-title">#i18n{broadcastproxy.pageTitle}</h2>
+            <@messages errors=errors />
+        </div>
+        <div class="container">
+            <h3 class="heading-title">#i18n{broadcastproxy.listUserSubscriptionsTitle}</h3>
+            <@tform class='form-horizontal' action='jsp/site/Portal.jsp?page=broadcastproxy' id='form_broadcastproxy'>
+            <fieldset>
+                <@formGroup labelFor="user_id" labelKey="user id : " helpKey="" >
+                    <@input type="text" id="user_id" name="user_id" value="${last_user_id!''}"  maxlength=255 tabIndex="1" />
+                </@formGroup>
+                <@formGroup labelFor="subscription_type" labelKey="Type : " helpKey=""  >
+                    <@select name="subscription_type"  items=subscription_types default_value="${last_subscription_type_id!''}"/>		
+                </@formGroup>
+                
+                <@formGroup>
+                        <@button name='action_home' type='submit' tabIndex='7' title='#i18n{portal.util.labelOk}' />
+                </@formGroup>
+                
+                <@formGroup>
+                        <#if subscription_list?? >
+                            Subscription list (${broadcastproxy}) :<br>
+                            
+                            <#if subscription_list?hasContent >
+                                <ul>
+                                <#list subscription_list?keys as subId>
+                                   <li>${subId} : ${subscription_list[subId]} <a href="jsp/site/Portal.jsp?page=broadcastproxy&action=unsubscribe&user_id=${last_user_id!''}&subscription_id=${subId}" >unsubscribe</a></li>
+                                </#list>  
+                                </ul>
+                            <#else>
+                                No subscriptions
+                            </#if>
+                        </#if>
+                </@formGroup>
+            </fieldset>
+            </@tform>
+        </div>
+	
+  </@columns>
+</@row>
+                                        

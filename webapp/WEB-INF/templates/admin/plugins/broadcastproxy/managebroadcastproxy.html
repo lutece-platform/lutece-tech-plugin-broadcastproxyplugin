@@ -1,0 +1,114 @@
+<@box>
+    <@boxHeader title='#i18n{broadcastproxy.pageTitle}' boxTools=true>
+            <@messages errors=errors />
+            <@messages infos=infos />
+    </@boxHeader>
+
+    <@boxBody>    
+    <@row>
+    <@columns>
+	<div class="container">
+            
+        </div>
+        <div class="container">
+            <h3 class="heading-title">#i18n{broadcastproxy.listUserSubscriptionsTitle}</h3>
+            <@tform class='form-horizontal' action='jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp' id='form_broadcastproxy'>
+            <!-- input type="hidden" name="plugin_name" value="broadcastproxy" -->
+            <fieldset>
+                <@formGroup labelFor="user_id" labelKey="user id : " helpKey="" >
+                    <@input type="text" id="user_id" name="user_id" value="${last_user_id!''}"  maxlength=255 tabIndex="1" />
+                </@formGroup>
+                <@formGroup labelFor="subscription_type" labelKey="Type : " helpKey=""  >
+                    <@select name="subscription_type"  items=subscription_types default_value="${last_subscription_type_id!''}"/>		
+                </@formGroup>
+                
+                <@formGroup>
+                        <@button name='action_home' type='submit' tabIndex='7' title='#i18n{portal.util.labelOk}' />
+                </@formGroup>
+                </fieldset>
+            </@tform>
+            
+            
+            <@tform class='form-horizontal' action='jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp' id='form_broadcastproxy'>
+            <input type="hidden" id="user_id" name="user_id" value="${last_user_id!''}" />
+            <input type="hidden" name="subscription_type" value="${last_subscription_type_id!''}" />
+            
+                <@formGroup>
+                        <#if subscription_list_map?? >
+                            Subscription list for ${last_user_id!''} (${broadcastproxy}) :<br>
+                            
+                            <#if subscription_list_map?hasContent >
+                                <ul>
+                                <#list subscription_list_map?keys as subId>
+                                   <li>
+                                       
+                                        <#if subscription_list_map[subId]  == "1">
+                                        <input type="checkbox" name="${subId}" <#if subscription_list_map[subId] == "1">checked="checked"</#if> />   
+                                            ${subId}
+                                        <a href="jsp/site/Portal.jsp?page=broadcastproxy&action=unsubscribe&user_id=${last_user_id!''}&subscription_id=${subId}" > &gt; Unsubscribe</a></li>
+                                       
+                                        <#elseIf subscription_list_map[subId] == "0" >
+                                        <input type="checkbox" name="${subId}" <#if subscription_list_map[subId] == "1">checked="checked"</#if> />   
+                                            ${subId}
+                                        <a href="jsp/site/Portal.jsp?page=broadcastproxy&action=subscribe&user_id=${last_user_id!''}&subscription_id=${subId}" > &gt; Subscribe</a></li>
+                                
+                                        <#else>
+                                            ${subId} : <br>
+                                            <#assign activeList = subscription_list_map[subId]?split(",") >
+                                            <#assign my_array = []  
++ ["ateliers_beaux_arts"] 
++ ["bmo"] 
++ ["circulation"] 
++ ["CMA"] 
++ ["collecte_des_dechets"] 
++ ["conservatoires"] 
++ ["elections"] 
++ ["parcs_et_jardins"] 
++ ["Paris_sport_vacances"] 
++ ["senior_plus"] 
++ ["stationnement_residentiel"] 
++ ["universite_permanente"] 
++ ["vacances_arc_en_ciel"] />
+                                            <ul>
+                                            <#list my_array as theme >
+                                                <li> 
+                                                    <#assign check="">
+                                                    <#list activeList as activeTheme>
+                                                        <#if activeTheme == theme >
+                                                            <#assign check="checked=checked">
+                                                        </#if>
+                                                    </#list>
+                                                    <input type="checkbox" name="${theme}" ${check} /> 
+                                                    ${theme}
+                                                </li>
+                                            </#list>
+                                            </ul>
+                                            
+                                        </#if>
+                                </#list>  
+                                </ul>
+                            <#else>
+                                No subscriptions
+                            </#if>
+                        </#if>
+                                
+                        <br>
+                        <#if subscription_list?? >
+                            JSON<br>
+                            <textarea rows="5" cols="60">${subscription_list}</textarea>
+                        </#if>
+                </@formGroup>
+                            
+                <@formGroup>
+                        <@button name='action_updateUserSubscriptions' type='submit' tabIndex='7' title='#i18n{portal.util.labelModify}' />
+                </@formGroup>
+            </fieldset>
+            </@tform>
+        </div>
+	
+  </@columns>
+</@row>
+
+</@boxBody>
+</@box>
+                                        
