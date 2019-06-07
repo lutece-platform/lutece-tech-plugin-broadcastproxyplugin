@@ -3,7 +3,6 @@ package fr.paris.lutece.plugins.broadcastproxy.business.providers.mock;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
 
 public class MockProvider implements IBroadcastProvider
@@ -31,33 +30,32 @@ public class MockProvider implements IBroadcastProvider
         return "Mock";
     }
 
-
     @Override
-    public String getUserSubscriptions( String userId, String typeSubsciption ) 
+    public String getUserSubscriptions( String userId, String typeSubsciption )
     {
         return DEFAULT_USER_SUBSCRIPTIONS_JSON;
     }
 
     @Override
-    public boolean updateUserSubscribtions( String userId, Map<String, String> listSubscriptions, String typeSubsciption ) 
+    public boolean updateUserSubscribtions( String userId, Map<String, String> listSubscriptions, String typeSubsciption )
     {
         return true;
     }
 
     @Override
-    public boolean subscribe(String userId, String subscriptionId, String typeSubsciption) 
+    public boolean subscribe( String userId, String subscriptionId, String typeSubsciption )
     {
         return true;
     }
 
     @Override
-    public boolean unsubscribe(String userId, String subscriptionId, String typeSubsciption) 
+    public boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption )
     {
         return true;
     }
 
     @Override
-    public Map<String, String> getUserSubscriptionsAsMap(String userId, String typeSubsciption)  
+    public Map<String, String> getUserSubscriptionsAsMap( String userId, String typeSubsciption )
     {
         return DEFAULT_USER_SUBSCRIPTIONS_MAP;
     }

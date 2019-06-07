@@ -35,12 +35,11 @@ public interface IBroadcastProvider
     boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception;
 
     /**
-     * returns the user subscribtions list as a JSON string like :
-     *       [{id:"1",name:"sub1"},{id:"2",name:"sub2"}]
+     * returns the user subscribtions list as a JSON string like : [{id:"1",name:"sub1"},{id:"2",name:"sub2"}]
      * 
      * @param userId
      * @param typeSubsciption
-     * @return a JSON string 
+     * @return a JSON string
      * @throws java.lang.Exception
      */
     String getUserSubscriptions( String userId, String typeSubsciption ) throws Exception;
@@ -53,7 +52,7 @@ public interface IBroadcastProvider
      * @return the map
      * @throws java.lang.Exception
      */
-    Map<String,String> getUserSubscriptionsAsMap( String userId, String typeSubsciption ) throws Exception;
+    Map<String, String> getUserSubscriptionsAsMap( String userId, String typeSubsciption ) throws Exception;
 
     /**
      * update user subscriptions to the specified subscription list

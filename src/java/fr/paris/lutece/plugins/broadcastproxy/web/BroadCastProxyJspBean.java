@@ -44,7 +44,6 @@ import fr.paris.lutece.util.ReferenceList;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-
 /**
  * This class provides the user interface to manage Lobby features ( manage, create, modify, remove )
  */
@@ -57,26 +56,25 @@ public class BroadCastProxyJspBean extends MVCAdminJspBean
 
     // actions & views
     private static final String VIEW_TEST_BROADCAST = "testBroadCast";
-    
+
     // Parameters
     private static final String PARAMETER_USER_ID = "user_id";
-    private static final String PARAMETER_SUBSCRIPTION_TYPE ="subscription_type";
-    
+    private static final String PARAMETER_SUBSCRIPTION_TYPE = "subscription_type";
+
     // Properties
     private static final String PROPERTY_PAGE_TITLE_BROADCASTPROXY = "broadcastproxy.pageTitle";
-    
+
     // Markers
-    private static final String MARK_SUBSCRIPTION_LIST ="subscription_list";
-    private static final String MARK_SUBSCRIPTION_LIST_MAP ="subscription_list_map";
-    private static final String MARK_SUBSCRIPTION_TYPE_LIST ="subscription_types";
-    private static final String MARK_BROADCASTPROXY ="broadcastproxy";
+    private static final String MARK_SUBSCRIPTION_LIST = "subscription_list";
+    private static final String MARK_SUBSCRIPTION_LIST_MAP = "subscription_list_map";
+    private static final String MARK_SUBSCRIPTION_TYPE_LIST = "subscription_types";
+    private static final String MARK_BROADCASTPROXY = "broadcastproxy";
     private static final String MARK_LAST_USER_ID = "last_user_id";
     private static final String MARK_LAST_SUBSCRIPTION_TYPE_ID = "last_subscription_type_id";
 
     // messages
-    private static final String MSG_ERROR_GET_USER_SUBSCRIPTIONS ="Error while trying to get user Subscriptions";
-    
-   
+    private static final String MSG_ERROR_GET_USER_SUBSCRIPTIONS = "Error while trying to get user Subscriptions";
+
     // instance variables
     ReferenceList _subscriptionTypes = null;
 
@@ -92,58 +90,57 @@ public class BroadCastProxyJspBean extends MVCAdminJspBean
     {
         Map<String, Object> model = getModel( );
         initSubscriptionTypes( );
-        
-        if ( request.getParameter( PARAMETER_USER_ID) != null) 
+
+        if ( request.getParameter( PARAMETER_USER_ID ) != null )
         {
-            String userId = request.getParameter( PARAMETER_USER_ID);
+            String userId = request.getParameter( PARAMETER_USER_ID );
             int subscriptionTypeId = -1;
-            try 
+            try
             {
                 subscriptionTypeId = Integer.parseInt( request.getParameter( PARAMETER_SUBSCRIPTION_TYPE ) );
             }
-            catch (NumberFormatException e) 
+            catch( NumberFormatException e )
             {
-                addError("Invalid subscription type");
+                addError( "Invalid subscription type" );
             }
-                    
-            try 
+
+            try
             {
-                Map<String,String> map = BroadcastService.getInstance( ).getUserSubscriptionsAsMap( userId, _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
+                Map<String, String> map = BroadcastService.getInstance( ).getUserSubscriptionsAsMap( userId,
+                        _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
                 model.put( MARK_SUBSCRIPTION_LIST_MAP, map );
-                
+
                 String json = BroadcastService.getInstance( ).getUserSubscriptions( userId, _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
                 model.put( MARK_SUBSCRIPTION_LIST, json );
-                
-                
-                model.put( MARK_BROADCASTPROXY , BroadcastService.getInstance().getName( ) );
+
+                model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
                 model.put( MARK_LAST_USER_ID, userId );
                 model.put( MARK_LAST_SUBSCRIPTION_TYPE_ID, subscriptionTypeId );
-                
-            } 
-            catch ( Exception e )
+
+            }
+            catch( Exception e )
             {
                 addError( MSG_ERROR_GET_USER_SUBSCRIPTIONS );
                 AppLogService.error( e.getMessage( ) );
-            }       
+            }
         }
-        
-        
+
         model.put( MARK_SUBSCRIPTION_TYPE_LIST, _subscriptionTypes );
 
         return getPage( PROPERTY_PAGE_TITLE_BROADCASTPROXY, TEMPLATE_TEST_BROADCASTPROXY, model );
     }
 
     /**
-     * init 
+     * init
      */
-    private void initSubscriptionTypes()
+    private void initSubscriptionTypes( )
     {
         if ( _subscriptionTypes == null )
         {
-            _subscriptionTypes = new ReferenceList();
+            _subscriptionTypes = new ReferenceList( );
             _subscriptionTypes.addItem( 0, Constants.TYPE_ALERT );
             _subscriptionTypes.addItem( 1, Constants.TYPE_NEWSLETTER );
         }
     }
-    
+
 }

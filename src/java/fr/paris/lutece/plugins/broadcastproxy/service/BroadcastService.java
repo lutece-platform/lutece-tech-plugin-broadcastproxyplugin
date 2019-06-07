@@ -2,7 +2,6 @@ package fr.paris.lutece.plugins.broadcastproxy.service;
 
 import java.util.Map;
 
-
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
 import fr.paris.lutece.portal.service.spring.SpringContextService;
 import fr.paris.lutece.portal.service.util.AppLogService;
@@ -31,13 +30,13 @@ public class BroadcastService
     {
         return _broadcastProvider.getName( );
     }
-    
+
     /**
      * Get the unique instance of the Security Service
      *
      * @return The instance
      */
-    public static synchronized BroadcastService getInstance( ) 
+    public static synchronized BroadcastService getInstance( )
     {
         if ( _instance == null )
         {
@@ -54,22 +53,19 @@ public class BroadcastService
      * @throws LuteceInitException
      *             If error while initialization
      */
-    private synchronized void init( ) 
+    private synchronized void init( )
     {
         if ( _broadcastProvider == null )
         {
-            
+
             _broadcastProvider = (IBroadcastProvider) SpringContextService.getBean( BEAN_BROADCAST_PROVIDER );
             AppLogService.info( "BroadcastProvider loaded : " + _broadcastProvider.getName( ) );
-                        
+
         }
     }
 
-
     /**
-     * get user subscriptions
-     *   returns the user subscription list as a JSON string like :
-     *       [{id:"1",name:"sub1"},{id:"2",name:"sub2"}]
+     * get user subscriptions returns the user subscription list as a JSON string like : [{id:"1",name:"sub1"},{id:"2",name:"sub2"}]
      * 
      * @param userId
      * @param typeSubsciption
@@ -87,7 +83,7 @@ public class BroadcastService
      * @param listSubscriptions
      * @param typeSubsciption
      * @return true if success
-     * @throws Exception 
+     * @throws Exception
      */
     public boolean updateUserSubscribtions( String userId, Map<String, String> listSubscriptions, String typeSubsciption ) throws Exception
     {
@@ -101,23 +97,23 @@ public class BroadcastService
      * @param subscriptionId
      * @param typeSubsciption
      * @return true if success
-     * @throws Exception 
+     * @throws Exception
      */
-    public boolean subscribe(String userId, String subscriptionId, String typeSubsciption) throws Exception 
+    public boolean subscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception
     {
         return _broadcastProvider.subscribe( userId, subscriptionId, typeSubsciption );
     }
 
     /**
-     * unsubscribe 
+     * unsubscribe
      * 
      * @param userId
      * @param subscriptionId
      * @param typeSubsciption
      * @return true if success
-     * @throws Exception 
+     * @throws Exception
      */
-    public boolean unsubscribe(String userId, String subscriptionId, String typeSubsciption) throws Exception 
+    public boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception
     {
         return _broadcastProvider.unsubscribe( userId, subscriptionId, typeSubsciption );
     }
@@ -130,14 +126,9 @@ public class BroadcastService
      * @return the map
      * @throws java.lang.Exception
      */
-    public Map<String, String> getUserSubscriptionsAsMap(String userId, String typeSubsciption) throws Exception 
+    public Map<String, String> getUserSubscriptionsAsMap( String userId, String typeSubsciption ) throws Exception
     {
         return _broadcastProvider.getUserSubscriptionsAsMap( userId, typeSubsciption );
     }
-    
-    
- 
-
-
 
 }
