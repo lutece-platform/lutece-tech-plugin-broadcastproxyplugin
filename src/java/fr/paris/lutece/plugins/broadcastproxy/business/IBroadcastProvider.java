@@ -33,7 +33,7 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.business;
 
-import java.util.Map;
+import java.util.List;
 
 public interface IBroadcastProvider
 {
@@ -68,34 +68,48 @@ public interface IBroadcastProvider
     boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception;
 
     /**
-     * returns the user subscribtions list as a JSON string like : [{id:"1",name:"sub1"},{id:"2",name:"sub2"}]
+     * returns the user subscribtions list as list of Subscriptions beans
+     * 
+     * @param userId
+     * @param typeSubsciption
+     * @return the list
+     * @throws java.lang.Exception
+     */
+    List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubsciption ) throws Exception;
+
+    /**
+     * returns the user subscribtions list as a JSON string like :
+     * 
+     * {"subscriptions":[{"name":"EXAMPLE_ONE","active":"0"},{"name":"EXAMPLE_TWO","active":"1","data":["data1","date2","data3"]}]}
      * 
      * @param userId
      * @param typeSubsciption
      * @return a JSON string
      * @throws java.lang.Exception
      */
-    String getUserSubscriptions( String userId, String typeSubsciption ) throws Exception;
-
-    /**
-     * returns the user subscribtions list as a map of pairs (id,name)
-     * 
-     * @param userId
-     * @param typeSubsciption
-     * @return the map
-     * @throws java.lang.Exception
-     */
-    Map<String, String> getUserSubscriptionsAsMap( String userId, String typeSubsciption ) throws Exception;
+    String getUserSubscriptionsAsJson( String userId, String typeSubsciption ) throws Exception;
 
     /**
      * update user subscriptions to the specified subscription list
      * 
-     * @param userId
-     * @param listSubscriptions
-     * @param typeSubscription
+     * @param subscriptionsList
      * @return true if success
      * @throws java.lang.Exception
      */
-    boolean updateUserSubscribtions( String userId, Map<String, String> listSubscriptions, String typeSubscription ) throws Exception;
+    boolean updateSubscribtions( List<Subscription> subscriptionsList ) throws Exception;
 
+    /**
+     * update user subscription
+     * 
+     * @param subscription
+     * @return true if success
+     * @throws java.lang.Exception
+     */
+    boolean update( Subscription subscription ) throws Exception;
+
+    /**
+     * get feed list
+     * @return the list
+     */
+    List<Feed> getFeeds( ) ;
 }

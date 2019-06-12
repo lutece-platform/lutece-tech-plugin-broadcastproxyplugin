@@ -1,5 +1,5 @@
 <@box>
-    <@boxHeader title='#i18n{broadcastproxy.pageTitle}' boxTools=true>
+    <@boxHeader title='#i18n{broadcastproxy.pageTitle}' boxTools=false>
             <@messages errors=errors />
             <@messages infos=infos />
     </@boxHeader>
@@ -19,7 +19,7 @@
                     <@input type="text" id="user_id" name="user_id" value="${last_user_id!''}"  maxlength=255 tabIndex="1" />
                 </@formGroup>
                 <@formGroup labelFor="subscription_type" labelKey="Type : " helpKey=""  >
-                    <@select name="subscription_type"  items=subscription_types default_value="${last_subscription_type_id!''}"/>		
+                    <@select name="subscription_type"  items=subscription_types default_value="${last_subscription_type_id!'0'}"/>		
                 </@formGroup>
                 
                 <@formGroup>
@@ -28,82 +28,93 @@
                 </fieldset>
             </@tform>
             
+            <#if last_user_id?? >
             
             <@tform class='form-horizontal' action='jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp' id='form_broadcastproxy'>
             <input type="hidden" id="user_id" name="user_id" value="${last_user_id!''}" />
-            <input type="hidden" name="subscription_type" value="${last_subscription_type_id!''}" />
+            <input type="hidden" name="subscription_type" value="${last_subscription_type_id!'0'}" />
             
                 <@formGroup>
-                        <#if subscription_list_map?? >
-                            Subscription list for ${last_user_id!''} (${broadcastproxy}) :<br>
-                            
-                            <#if subscription_list_map?hasContent >
-                                <ul>
-                                <#list subscription_list_map?keys as subId>
-                                   <li>
-                                       
-                                        <#if subscription_list_map[subId]  == "1">
-                                        <input type="checkbox" name="${subId}" <#if subscription_list_map[subId] == "1">checked="checked"</#if> />   
-                                            ${subId}
-                                        <a href="jsp/site/Portal.jsp?page=broadcastproxy&action=unsubscribe&user_id=${last_user_id!''}&subscription_id=${subId}" > &gt; Unsubscribe</a></li>
-                                       
-                                        <#elseIf subscription_list_map[subId] == "0" >
-                                        <input type="checkbox" name="${subId}" <#if subscription_list_map[subId] == "1">checked="checked"</#if> />   
-                                            ${subId}
-                                        <a href="jsp/site/Portal.jsp?page=broadcastproxy&action=subscribe&user_id=${last_user_id!''}&subscription_id=${subId}" > &gt; Subscribe</a></li>
-                                
-                                        <#else>
-                                            ${subId} : <br>
-                                            <#assign activeList = subscription_list_map[subId]?split(",") >
-                                            <#assign my_array = []  
-+ ["ateliers_beaux_arts"] 
-+ ["bmo"] 
-+ ["circulation"] 
-+ ["CMA"] 
-+ ["collecte_des_dechets"] 
-+ ["conservatoires"] 
-+ ["elections"] 
-+ ["parcs_et_jardins"] 
-+ ["Paris_sport_vacances"] 
-+ ["senior_plus"] 
-+ ["stationnement_residentiel"] 
-+ ["universite_permanente"] 
-+ ["vacances_arc_en_ciel"] />
-                                            <ul>
-                                            <#list my_array as theme >
-                                                <li> 
-                                                    <#assign check="">
-                                                    <#list activeList as activeTheme>
-                                                        <#if activeTheme == theme >
-                                                            <#assign check="checked=checked">
-                                                        </#if>
-                                                    </#list>
-                                                    <input type="checkbox" name="${theme}" ${check} /> 
-                                                    ${theme}
-                                                </li>
-                                            </#list>
-                                            </ul>
-                                            
-                                        </#if>
-                                </#list>  
-                                </ul>
-                            <#else>
-                                No subscriptions
+            
+            
+            Subscription list for ${last_user_id!''} (${broadcastproxy!'?'}) :<br>
+            
+                        <#if !subscription_list?? >No subscriptions<br><br></#if>
+                        
+                        <#assign current_feed_type = subscription_types[ last_subscription_type_id!'0'?number ].getName( ) >
+                        
+                        <ul>
+                        <#list subscription_feeds as feed >
+                        <#if feed.type = current_feed_type >
+                        
+                            <#if subscription_list?hasContent >
+                            <#list subscription_list as sub>
+                                <#if sub.name = feed.name >
+                                    <#assign userSub = sub >
+                                    <#if sub.data?hasContent>
+                                        <#assign userSubData = sub.data?keys >
+                                    </#if>
+                                </#if>
+                            </#list>
                             </#if>
-                        </#if>
-                                
-                        <br>
-                        <#if subscription_list?? >
-                            JSON<br>
-                            <textarea rows="5" cols="60">${subscription_list}</textarea>
-                        </#if>
-                </@formGroup>
                             
+                            <li>
+                                <input type="checkbox" name="SUB_${feed.name}" <#if userSub?? && userSub.isActive() >checked="checked"</#if> />   
+                                    ${feed.name}
+
+                                <#if userSub?? && userSub.isActive() >
+                                    <a href="jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp?action=unsubscribe&user_id=${last_user_id!''}&subscription_id=${feed.name}&subscription_type=${last_subscription_type_id!''}" > &gt; Unsubscribe</a></li>
+                                <#else >
+                                    <a href="jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp?action=subscribe&user_id=${last_user_id!''}&subscription_id=${feed.name}&subscription_type=${last_subscription_type_id!''}" > &gt; Subscribe</a></li>
+                                </#if>
+
+                                <#if feed.data?hasContent && 0 < feed.data?size >
+                                    themes : <br>
+                                    <#assign refThemeList = feed.data?keys />
+
+                                    <ul>
+                                    <#list refThemeList as theme >
+                                        <li> 
+                                            <#assign check="">
+                                            <#if userSubData?hasContent>
+                                            <#list userSubData as activeTheme>
+                                                <#if activeTheme == theme >
+                                                    <#assign check="checked=checked">
+                                                </#if>
+                                            </#list>
+                                            </#if>
+                                            
+                                            <input type="checkbox" name="data_${feed.name}_${theme}" ${check} /> 
+                                            ${theme}
+                                        </li>
+                                    </#list>
+                                    </ul>
+
+                                </#if>
+                            </li>
+                        
+                        
+                              
+                        </#if>
+                        </#list>    
+                        <br>
+                        
+                </@formGroup>
+
+                <#if last_subscription_type_id?? >
                 <@formGroup>
                         <@button name='action_updateUserSubscriptions' type='submit' tabIndex='7' title='#i18n{portal.util.labelModify}' />
                 </@formGroup>
+                </#if>
+                        
+                <#if subscription_json?? >
+                    JSON<br>
+                    <textarea rows="5" cols="60">${subscription_json}</textarea>
+                </#if>
             </fieldset>
             </@tform>
+                        
+            </#if>
         </div>
 	
   </@columns>

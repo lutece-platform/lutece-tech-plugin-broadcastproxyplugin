@@ -33,11 +33,14 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.service;
 
-import java.util.Map;
 
+import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
+import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
+import fr.paris.lutece.portal.service.init.LuteceInitException;
 import fr.paris.lutece.portal.service.spring.SpringContextService;
 import fr.paris.lutece.portal.service.util.AppLogService;
+import java.util.List;
 
 public class BroadcastService
 {
@@ -98,29 +101,41 @@ public class BroadcastService
     }
 
     /**
-     * get user subscriptions returns the user subscription list as a JSON string like : [{id:"1",name:"sub1"},{id:"2",name:"sub2"}]
+     * get user subscriptions returns the user subscription list as a JSON string like :
+     * 
+     * {"subscriptions":[{"name":"EXAMPLE_ONE","active":"0"},{"name":"EXAMPLE_TWO","active":"1","data":["data1","date2","data3"]}]}
      * 
      * @param userId
      * @param typeSubsciption
      * @return a JSON String
      */
-    public String getUserSubscriptions( String userId, String typeSubsciption ) throws Exception
+    public String getUserSubscriptionsAsJson( String userId, String typeSubsciption ) throws Exception
     {
-        return _broadcastProvider.getUserSubscriptions( userId, typeSubsciption );
+        return _broadcastProvider.getUserSubscriptionsAsJson( userId, typeSubsciption );
+    }
+
+    /**
+     * get user subscriptions returns the user subscription list as a list of Subscription beans
+     * 
+     * @param userId
+     * @param typeSubsciption
+     * @return a JSON String
+     */
+    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubsciption ) throws Exception
+    {
+        return _broadcastProvider.getUserSubscriptionsAsList( userId, typeSubsciption );
     }
 
     /**
      * update user subscriptions to the specified subscription list
      * 
-     * @param userId
-     * @param listSubscriptions
-     * @param typeSubsciption
+     * @param subscriptionsList
      * @return true if success
      * @throws Exception
      */
-    public boolean updateUserSubscribtions( String userId, Map<String, String> listSubscriptions, String typeSubsciption ) throws Exception
+    public boolean updateSubscribtions( List<Subscription> subscriptionsList ) throws Exception
     {
-        return _broadcastProvider.updateUserSubscribtions( userId, listSubscriptions, typeSubsciption );
+        return _broadcastProvider.updateSubscribtions( subscriptionsList );
     }
 
     /**
@@ -152,16 +167,25 @@ public class BroadcastService
     }
 
     /**
-     * returns the user subscribtions list as a map of pairs (id,name)
+     * updates a Subscription bean
      * 
-     * @param userId
-     * @param typeSubsciption
+     * @param sub
      * @return the map
      * @throws java.lang.Exception
      */
-    public Map<String, String> getUserSubscriptionsAsMap( String userId, String typeSubsciption ) throws Exception
+    public boolean update( Subscription sub ) throws Exception
     {
-        return _broadcastProvider.getUserSubscriptionsAsMap( userId, typeSubsciption );
+        return _broadcastProvider.update( sub );
+    }
+    
+    /**
+     * get the list of available feeds
+     * 
+     * @return the list
+     */
+    public List<Feed> getFeeds( )
+    {
+        return _broadcastProvider.getFeeds( );
     }
 
 }
