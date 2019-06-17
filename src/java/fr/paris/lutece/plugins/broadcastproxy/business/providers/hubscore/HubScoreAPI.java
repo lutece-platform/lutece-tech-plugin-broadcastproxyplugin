@@ -131,9 +131,10 @@ public class HubScoreAPI
         try
         {
             JsonNode nodes = mapper.readTree( strResponse );
-            
-            if ( nodes.get( "records" ).findValue( "id" ) == null ) return null;
-            
+
+            if ( nodes.get( "records" ).findValue( "id" ) == null )
+                return null;
+
             _strUserId = nodes.get( "records" ).findValue( "id" ).asText( );
         }
         catch( IOException e )
@@ -149,7 +150,6 @@ public class HubScoreAPI
         return _strUserId;
     }
 
-            
     /**
      * Hubscore user record api
      * 
@@ -180,12 +180,12 @@ public class HubScoreAPI
 
             if ( Constants.ACTION_ADD.equals( action ) )
             {
-                return httpAccess.doPost(strUrl, params, null, null, mapHeaders );
+                return httpAccess.doPost( strUrl, params, null, null, mapHeaders );
             }
 
             if ( Constants.ACTION_DELETE.equals( action ) )
             {
-                return httpAccess.doDelete(strUrl, null, null, null, mapHeaders );
+                return httpAccess.doDelete( strUrl, null, null, null, mapHeaders );
             }
 
         }
@@ -262,8 +262,8 @@ public class HubScoreAPI
             if ( strUserId == null && !StringUtils.isBlank( userName ) )
             {
                 // create user
-                manageUser( userName, typeSubscription, Constants.ACTION_ADD, forceTokenRefresh ) ;
-                
+                manageUser( userName, typeSubscription, Constants.ACTION_ADD, forceTokenRefresh );
+
                 // get the new id
                 strUserId = getUserId( userName, typeSubscription, forceTokenRefresh );
             }
@@ -273,11 +273,14 @@ public class HubScoreAPI
 
             strUrl += "/" + strUserId + ".json";
 
-            
+            AppLogService.info( "Trying to update subscription of : " + userName );
+
             HttpResponse response = doPatch( strUrl, mapSubscriptions, mapHeaders );
 
-            if ( response.getStatusLine( ).getStatusCode( ) != 200 )
+            if ( response.getStatusLine( ).getStatusCode( ) != 204 )
                 AppLogService.error( "Error connecting to '" + strUrl + "' : " + response.getStatusLine( ).getReasonPhrase( ) );
+
+            AppLogService.info( "Response Status when trying to update subscription of " + userName + " : " + response.getStatusLine( ).getReasonPhrase( ) );
 
             return response;
         }
@@ -309,19 +312,17 @@ public class HubScoreAPI
         }
 
         String strParamsInJson = mapper.writeValueAsString( params );
-        List<NameValuePair> listDatas = new ArrayList<>();
-        listDatas.add( new BasicNameValuePair( "datas", strParamsInJson) );
-        
+        List<NameValuePair> listDatas = new ArrayList<>( );
+        listDatas.add( new BasicNameValuePair( "datas", strParamsInJson ) );
+
         // StringEntity stringEntity = new StringEntity(datas, ContentType.APPLICATION_FORM_URLENCODED);
         // stringEntity.setContentType( new BasicHeader( "Content-Type", "application/json;charset=UTF-8" ) );
         // stringEntity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json;charset=UTF-8"));
-        //StringEntity stringEntity = new StringEntity( new UrlEncodedFormEntity( mapDatas) );
-        //stringEntity.setContentType( new BasicHeader( "Content-Type", "application/x-www-form-urlencoded" ) );
+        // StringEntity stringEntity = new StringEntity( new UrlEncodedFormEntity( mapDatas) );
+        // stringEntity.setContentType( new BasicHeader( "Content-Type", "application/x-www-form-urlencoded" ) );
 
-        method.setHeader( "Content-Type", "application/x-www-form-urlencoded");
+        method.setHeader( "Content-Type", "application/x-www-form-urlencoded" );
         method.setEntity( new UrlEncodedFormEntity( listDatas ) );
-        
-        
 
         // stringEntity.setContentEncoding("UTF-8");
         // StringEntity stringEntity = new StringEntity(datas);
@@ -330,7 +331,7 @@ public class HubScoreAPI
         try
         {
             CloseableHttpClient client = HttpClientBuilder.create( ).build( );
-            
+
             // add proxy
             HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
             RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
@@ -351,16 +352,15 @@ public class HubScoreAPI
         }
 
         // httpcode 204 : no content in response
-        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 204  )
+        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 204 )
         {
             String strError = "HttpPatch - Problem connecting to '" + strUrl + "' : ";
             AppLogService.error( strError + httpResponse.getStatusLine( ).getReasonPhrase( ) );
         }
-        
+
         return httpResponse;
     }
 
-    
     /*** TOKEN MANAGEMENT ***/
 
     /**

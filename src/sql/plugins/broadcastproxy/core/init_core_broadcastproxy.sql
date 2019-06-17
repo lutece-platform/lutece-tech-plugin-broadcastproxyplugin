@@ -13,3 +13,9 @@ INSERT INTO core_admin_right (id_right,name,level_right,admin_url,description,is
 DELETE FROM core_user_right WHERE id_right = 'BROADCASTPROXY_MANAGEMENT';
 INSERT INTO core_user_right (id_right,id_user) VALUES ('BROADCASTPROXY_MANAGEMENT',1);
 
+--
+-- add site property (as datastore key)
+--
+INSERT INTO core_datastore (entity_key, entity_value) VALUES ('broadcastproxy.site_property.mydashboard.feedtypes', 'ALERT,NEWSLETTER');
+
+

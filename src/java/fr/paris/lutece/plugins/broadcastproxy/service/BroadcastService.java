@@ -33,7 +33,6 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.service;
 
-
 import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
@@ -177,7 +176,7 @@ public class BroadcastService
     {
         return _broadcastProvider.update( sub );
     }
-    
+
     /**
      * get the list of available feeds
      * 

@@ -38,7 +38,7 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.business;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -47,31 +47,32 @@ import java.util.Map;
  */
 public class Subscription
 {
+
+    private String _id;
     private String _userId;
     private String _userName;
     private String _type;
-    private String _name;
     private boolean _isActive;
-    private Map<String,String> _data;
+    private Map<String, String> _data;
 
     /**
-     * get name
+     * get id
      * 
-     * @return the name
+     * @return the id
      */
-    public String getName( )
+    public String getId( )
     {
-        return _name;
+        return _id;
     }
 
     /**
-     * set name
+     * set id
      * 
-     * @param name
+     * @param strId
      */
-    public void setName( String name )
+    public void setId( String strId )
     {
-        this._name = name;
+        this._id = strId;
     }
 
     /**
@@ -159,7 +160,7 @@ public class Subscription
      * 
      * @return data
      */
-    public Map<String,String> getData( )
+    public Map<String, String> getData( )
     {
         return _data;
     }
@@ -169,8 +170,19 @@ public class Subscription
      * 
      * @param data
      */
-    public void setData( Map<String,String> data )
+    public void setData( Map<String, String> data )
     {
         this._data = data;
+    }
+    
+    /**
+     * add a data
+     * @param strName
+     * @param strValue 
+     */
+    public void addDataItem( String strName, String strValue )
+    {
+        if (_data == null ) _data = new HashMap<>( );
+        this._data.put( strName, strValue );
     }
 }

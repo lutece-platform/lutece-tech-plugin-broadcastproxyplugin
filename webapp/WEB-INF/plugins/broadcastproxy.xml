@@ -33,6 +33,10 @@
 
     <!-- XPages parameters -->
     <applications>
+        <application>
+            <application-id>broadcastproxyMyDashboard</application-id>
+            <application-class>fr.paris.lutece.plugins.broadcastproxy.web.BroadcastproxyXPage</application-class>
+        </application>
     </applications>
 
     <!-- Portlet parameters -->

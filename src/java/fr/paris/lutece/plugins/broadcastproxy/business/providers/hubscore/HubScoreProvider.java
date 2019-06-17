@@ -44,14 +44,18 @@ import java.util.Map;
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.plugins.broadcastproxy.service.Constants;
+import fr.paris.lutece.plugins.referencelist.service.ReferenceListService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
+import fr.paris.lutece.util.ReferenceList;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
 
 public class HubScoreProvider implements IBroadcastProvider
 {
@@ -59,6 +63,7 @@ public class HubScoreProvider implements IBroadcastProvider
     // Constants
     private static final String PROVIDER_NAME = "HubScore";
     private static final String CONSTANT_KEY_RECORDS = "records";
+    private static final String HUBSCORE_BROADCASTPROXY_LABELS = "HUBSCORE_BROADCASTPROXY_LABELS";
 
     // instance variables
     private HubScoreAPI _hubScoreAPI;
@@ -98,7 +103,7 @@ public class HubScoreProvider implements IBroadcastProvider
     {
         Subscription sub = new Subscription( );
         sub.setUserName( userName );
-        sub.setName( subscriptionId );
+        sub.setId( subscriptionId );
         sub.setType( typeSubscription );
 
         return update( sub );
@@ -109,79 +114,102 @@ public class HubScoreProvider implements IBroadcastProvider
     {
         Map<String, String> mapDatas = new HashMap<>( );
 
-        String name = sub.getName( );
-        
-        if ( !name.startsWith("Optin_") ) name = "Optin_" + name;
+        String name = sub.getId( );
+
+        if ( !name.startsWith( "Optin_" ) )
+            name = "Optin_" + name;
         String active = ( sub.isActive( ) ? "1" : "0" );
         mapDatas.put( name, active );
 
         // add date of update
         if ( sub.isActive( ) )
         {
-            mapDatas.put( "Date_Consentement_" + name.substring( 6 ), getFormattedCurrentLocaleDateTime( ) );
+            String key = "Date_Consentement_" + name.substring( 6 );
+            mapDatas.put( key, getFormattedCurrentLocaleDateTime( ) );
         }
         else
         {
-            mapDatas.put( "Date_Desinscription_" + name.substring( 6 ), getFormattedCurrentLocaleDateTime( ) );
+            
+            String key = "Date_Desinscription_" + name.substring( 6 );
+            
+            if (sub.getType( ).equals( Constants.TYPE_NEWSLETTER )  )
+                key = "Date_Dsinscription_" + name.substring( 6 ); // !!!
+
+            mapDatas.put( key , getFormattedCurrentLocaleDateTime( ) );            
         }
 
         // add themes
         if ( sub.getData( ) != null && sub.getData( ).size( ) > 0 )
         {
-            String tab = sub.getData( ).toString( ).replaceAll( " ", "" );
-            String tabName = name.substring( 6 ); // name without "Optin_"
+            String values = "";
+            boolean isFirst = true;
+
+            for ( String theme : sub.getData( ).keySet( ) )
+            {
+                if ( sub.getData( ).get( theme ).equals( "1" ) )
+                {
+                    if ( !isFirst )
+                        values += ",";
+                    values += theme;
+
+                    isFirst = false;
+                }
+
+            }
+
+            String feedName = name.substring( 6 ); // name without "Optin_"
 
             // add themes
-            mapDatas.put( tabName, tab );
+            mapDatas.put( feedName, values );
         }
 
         try
         {
-            _hubScoreAPI.updateSubscribtions( sub.getUserName( ), mapDatas, sub.getType( ), false );
+            _hubScoreAPI.updateSubscribtions( sub.getUserId( ), mapDatas, sub.getType( ), false );
         }
         catch( Exception e )
         {
             // retry with refreshed token
-            _hubScoreAPI.updateSubscribtions(sub.getUserName( ), mapDatas, sub.getType( ), true );
+            _hubScoreAPI.updateSubscribtions( sub.getUserId( ), mapDatas, sub.getType( ), true );
         }
 
         return true;
     }
 
     @Override
-    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubsciption ) throws Exception
+    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception
     {
         String userSubscriptionsList = null;
 
         try
         {
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubsciption, false );
+            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, false );
         }
         catch( Exception e )
         {
             // try with new token
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubsciption, true );
+            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, true );
         }
 
-        return buildSubscriptionList( userSubscriptionsList );
+        return buildSubscriptionList( userSubscriptionsList, userId, typeSubscription );
     }
 
     @Override
-    public String getUserSubscriptionsAsJson( String userId, String typeSubsciption ) throws Exception
+    public String getUserSubscriptionsAsJson( String userId, String typeSubscription ) throws Exception
     {
         String userSubscriptionsList = null;
 
         try
         {
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubsciption, false );
+            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, false );
         }
         catch( Exception e )
         {
             // try with new token
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubsciption, true );
+            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, true );
         }
 
-        return buildJson( buildSubscriptionList( userSubscriptionsList ) );
+        return buildJson( buildSubscriptionList( userSubscriptionsList, userId, typeSubscription ) );
     }
 
     @Override
@@ -223,7 +251,7 @@ public class HubScoreProvider implements IBroadcastProvider
      * @param jsonResponse
      * @return a JSON String
      */
-    private List<Subscription> buildSubscriptionList( String jsonResponse ) throws IOException
+    private List<Subscription> buildSubscriptionList( String jsonResponse, String userId, String typeSubscription ) throws IOException
     {
 
         ObjectMapper mapper = new ObjectMapper( );
@@ -244,19 +272,22 @@ public class HubScoreProvider implements IBroadcastProvider
                 // subscription name key must start with "Optin_"
                 if ( key.startsWith( "Optin_" ) )
                 {
-                    String subName = key.substring( 6 );
+                    String subId = key.substring( 6 );
                     String subState = field.getValue( ).asText( );
 
                     Subscription sub = new Subscription( );
-                    sub.setName( subName );
-                    sub.setActive( "1".equals( subState ) );
 
-                    if ( arrayRecordsNode.get( 0 ).get( subName ) != null )
+                    sub.setId( subId );
+                    sub.setActive( "1".equals( subState ) );
+                    sub.setUserId( userId );
+                    sub.setType( typeSubscription );
+
+                    if ( arrayRecordsNode.get( 0 ).get( subId ) != null )
                     {
-                        String data = arrayRecordsNode.get( 0 ).get( subName ).asText( );
+                        String data = arrayRecordsNode.get( 0 ).get( subId ).asText( );
                         String [ ] themes = data.split( "," );
 
-                        Map<String, String>  themeList = new HashMap<>();
+                        Map<String, String> themeList = new HashMap<>( );
                         for ( String theme : themes )
                         {
                             themeList.put( theme, theme );
@@ -341,40 +372,50 @@ public class HubScoreProvider implements IBroadcastProvider
     }
 
     @Override
-    public List<Feed> getFeeds() {
-        List<Feed> list = new ArrayList<>();
-        
-        /* example
-broadcastproxy.hubscore.feedsType=ALERT,NEWSLETTER
-broadcastproxy.hubscore.feeds.type.ALERT=Paris,QFAP,Alerte
-broadcastproxy.hubscore.feeds.type.NEWSLETTER=Budget_Participatif,Carte_Citoyenne,Nuit_Debats,Lettre_Climat,Quartier_Populaire,asso.paris
-broadcastproxy.hubscore.feeds.type.ALERT.Alerte.data==ateliers_beaux_arts,bmo,circulation,CMA,collecte_des_dechets,conservatoires,elections,parcs_et_jardins,Paris_sport_vacances,senior_plus,stationnement_residentiel,universite_permanente,vacances_arc_en_ciel
-*/
-        String[] feedsTypes = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feedsType", "" ).split(",");
-        
-        for (String feedType : feedsTypes)
+    public List<Feed> getFeeds( )
+    {
+        List<Feed> list = new ArrayList<>( );
+
+        /*
+         * example : broadcastproxy.hubscore.feedsType=ALERT,NEWSLETTER broadcastproxy.hubscore.feeds.type.ALERT=Paris,QFAP,Alerte
+         * broadcastproxy.hubscore.feeds.type.NEWSLETTER=Budget_Participatif,Carte_Citoyenne,Nuit_Debats,Lettre_Climat,Quartier_Populaire,asso.paris
+         * broadcastproxy
+         * .hubscore.feeds.type.ALERT.Alerte.data==ateliers_beaux_arts,bmo,circulation,CMA,collecte_des_dechets,conservatoires,elections,parcs_et_jardins
+         * ,Paris_sport_vacances,senior_plus,stationnement_residentiel,universite_permanente,vacances_arc_en_ciel
+         */
+
+        String [ ] feedsTypes = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feedsType", "" ).split( "," );
+
+        // get labels in reference lists
+        ReferenceList labelList = ReferenceListService.getInstance( ).getReferenceList( HUBSCORE_BROADCASTPROXY_LABELS, "fr" );
+        Map<String, String> labelsMap = ( labelList != null ? labelList.toMap( ) : new HashMap<>( ) );
+
+        for ( String feedType : feedsTypes )
         {
-            String[] feedNames = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feeds.type."+ feedType, "" ).split(",");
-            for (String feedName : feedNames )
+            String [ ] feedIds = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feeds.type." + feedType, "" ).split( "," );
+            for ( String feedId : feedIds )
             {
-                Feed feed =  new Feed(feedName, feedName, feedType);
-                String datas[] = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feeds.type."+ feedType + "." + feedName + ".data", "" ).split(",");
-                if (datas.length>0)
+                String label = labelsMap.get( feedType + "." + feedId );
+                Feed feed = new Feed( feedId, ( label != null ? label : feedId ), feedType );
+                String datas [ ] = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feeds.type." + feedType + "." + feedId + ".data", "" )
+                        .split( "," );
+                if ( datas.length > 0 )
                 {
-                    Map<String,String> mapData = new HashMap<>();
-                    for (String data : datas )
+                    Map<String, String> mapData = new HashMap<>( );
+                    for ( String data : datas )
                     {
-                        if ( !StringUtils.isBlank( data ) )  mapData.put( data, data );
+                        String dataLabel = labelsMap.get( feedType + "." + feedId + "." + data );
+                        if ( !StringUtils.isBlank( data ) )
+                            mapData.put( data, ( label != null ? dataLabel : data ) );
                     }
                     feed.setData( mapData );
                 }
-                
+
                 list.add( feed );
             }
         }
 
         return list;
     }
-    
-    
+
 }

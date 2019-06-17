@@ -46,11 +46,14 @@
                         <ul>
                         <#list subscription_feeds as feed >
                         <#if feed.type = current_feed_type >
-                        
+                            
+                            <#assign activeSub = false >
+                            
                             <#if subscription_list?hasContent >
                             <#list subscription_list as sub>
-                                <#if sub.name = feed.name >
+                                <#if sub.id = feed.id >
                                     <#assign userSub = sub >
+                                    <#assign activeSub = userSub.isActive( ) >
                                     <#if sub.data?hasContent>
                                         <#assign userSubData = sub.data?keys >
                                     </#if>
@@ -59,13 +62,13 @@
                             </#if>
                             
                             <li>
-                                <input type="checkbox" name="SUB_${feed.name}" <#if userSub?? && userSub.isActive() >checked="checked"</#if> />   
+                                <input type="checkbox" name="SUB_${feed.type}_${feed.id}" <#if activeSub >checked="checked"</#if> />   
                                     ${feed.name}
 
-                                <#if userSub?? && userSub.isActive() >
-                                    <a href="jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp?action=unsubscribe&user_id=${last_user_id!''}&subscription_id=${feed.name}&subscription_type=${last_subscription_type_id!''}" > &gt; Unsubscribe</a></li>
+                                <#if activeSub >
+                                    <a href="jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp?action=unsubscribe&user_id=${last_user_id!''}&subscription_id=${feed.id}&subscription_type=${last_subscription_type_id!''}" > &gt; Unsubscribe</a></li>
                                 <#else >
-                                    <a href="jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp?action=subscribe&user_id=${last_user_id!''}&subscription_id=${feed.name}&subscription_type=${last_subscription_type_id!''}" > &gt; Subscribe</a></li>
+                                    <a href="jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp?action=subscribe&user_id=${last_user_id!''}&subscription_id=${feed.id}&subscription_type=${last_subscription_type_id!''}" > &gt; Subscribe</a></li>
                                 </#if>
 
                                 <#if feed.data?hasContent && 0 < feed.data?size >
@@ -84,8 +87,8 @@
                                             </#list>
                                             </#if>
                                             
-                                            <input type="checkbox" name="data_${feed.name}_${theme}" ${check} /> 
-                                            ${theme}
+                                            <input type="checkbox" name="DATA_${feed.type}_${feed.id}_${theme}" ${check} /> 
+                                            ${feed.data[theme]}
                                         </li>
                                     </#list>
                                     </ul>

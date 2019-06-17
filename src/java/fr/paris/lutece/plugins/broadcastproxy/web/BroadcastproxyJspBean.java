@@ -41,7 +41,6 @@ import fr.paris.lutece.portal.util.mvc.admin.MVCAdminJspBean;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
-import fr.paris.lutece.util.ReferenceItem;
 import fr.paris.lutece.util.ReferenceList;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -58,7 +57,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
 {
     // Templates
     private static final String TEMPLATE_TEST_BROADCASTPROXY = "/admin/plugins/broadcastproxy/managebroadcastproxy.html";
-    private static final String JSP_TEST_BROADCASTPROXY = "jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp";
 
     // actions & views
     private static final String VIEW_TEST_BROADCAST = "testBroadCast";
@@ -91,7 +89,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
     ReferenceList _subscriptionTypes = null;
     List<Feed> _subscriptionFeeds = null;
     String _currentFeedType = null;
-    
+
     /**
      * Build the Manage View
      * 
@@ -163,7 +161,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
 
         if ( request.getParameter( PARAMETER_USER_ID ) != null )
         {
-            String userName = request.getParameter( PARAMETER_USER_ID );
+            String userId = request.getParameter( PARAMETER_USER_ID );
             int subscriptionTypeId = -1;
             try
             {
@@ -175,7 +173,28 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                 addError( "Invalid subscription type" );
             }
 
-            // list of subscriptions (like Optin_*)
+            // Init subscription list with all feeds (checkbox unchecked are not present in request)
+            for ( Feed feed : _subscriptionFeeds )
+            {
+                if ( feed.getType( ).equals( _currentFeedType ) )
+                {
+                    // init sub
+                    Subscription sub = new Subscription( );
+                    sub.setId( feed.getId( ) );
+                    sub.setActive( false );
+                    sub.setUserId( userId );
+                    sub.setType( feed.getType( ) );
+                    for (String data : feed.getData( ).keySet( ) )
+                    {
+                        sub.addDataItem( data , "0" );
+                    }
+                    
+                    subscriptionsList.add( sub );
+                }
+            }
+            
+            
+            // Update states of subscription
             Enumeration enum1 = request.getParameterNames( );
             while ( enum1.hasMoreElements( ) )
             {
@@ -183,35 +202,30 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                 String fieldName = (String) obj;
                 String fieldValue = request.getParameter( fieldName );
 
-                if ( fieldName.startsWith( "SUB_" ) )
+                // set subscription states
+                if ( fieldName.startsWith( "SUB_" + _currentFeedType + "_" ) )
                 {
-                    Subscription sub = new Subscription( );
-                    sub.setName( fieldName );
-                    sub.setActive( true );
-                    sub.setUserName( userName );
-                    sub.setType( _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
-
-                    // search additionnal data
-                    Enumeration enum2 = request.getParameterNames( );
-                    Map<String, String>  data = new HashMap<>();
-
-                    while ( enum2.hasMoreElements( ) )
+                    String feedId = fieldName.substring( _currentFeedType.length( ) + 5 );
+                    for (Subscription sub : subscriptionsList )
                     {
-                        Object obj2 = enum2.nextElement( );
-                        String fieldName2 = (String) obj2;
-                        String fieldValue2 = request.getParameter( fieldName2 );
+                        if ( sub.getId( ).equals( feedId ) ) sub.setActive( true );
+                    }
+                }    
 
-                        if ( fieldName2.startsWith( "data_" + sub.getName( ).substring( 6 ) + "_" ) )
+                // set subscription data state
+                if ( fieldName.startsWith( "DATA_" + _currentFeedType + "_" ) ) 
+                {
+                    String feedIdAndData = fieldName.substring( _currentFeedType.length( ) + 6 );
+                    String feedId = feedIdAndData.substring( 0, feedIdAndData.indexOf( "_") ) ; // feed id MUST NOT contain underscores
+                    String data = feedIdAndData.substring( feedId.length( ) + 1 );
+                    
+                    for (Subscription sub : subscriptionsList )
+                    {
+                        if ( sub.getId( ).equals( feedId ) ) 
                         {
-                            String theme = fieldName2.substring( sub.getName( ).substring( 6 ).length( ) + 7 );
-                            data.put( theme, theme );
+                            sub.addDataItem( data , "1" );
                         }
                     }
-
-                    if ( data.size( ) > 0 )
-                        sub.setData( data );
-
-                    subscriptionsList.add( sub );
                 }
             }
 
@@ -229,10 +243,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                     addError( MSG_ERROR_GET_USER_SUBSCRIPTIONS );
                 }
 
-                model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
-                model.put( MARK_LAST_USER_ID, userName );
-                model.put( MARK_LAST_SUBSCRIPTION_TYPE_ID, subscriptionTypeId );
-
             }
             catch( Exception esub )
             {
@@ -241,10 +251,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             }
         }
 
-        model.put( MARK_SUBSCRIPTION_TYPE_LIST, _subscriptionTypes );        
-        model.put( MARK_SUBSCRIPTION_FEED_LIST, _subscriptionFeeds );
-
-        return getPage( PROPERTY_PAGE_TITLE_BROADCASTPROXY, TEMPLATE_TEST_BROADCASTPROXY, model );
+        return getTestBroadCastProxy( request );
     }
 
     /**
@@ -262,7 +269,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
 
         if ( request.getParameter( PARAMETER_USER_ID ) != null )
         {
-            String userName = request.getParameter( PARAMETER_USER_ID );
+            String userId = request.getParameter( PARAMETER_USER_ID );
             int subscriptionTypeId = -1;
             try
             {
@@ -277,9 +284,9 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             String subscriptionId = request.getParameter( PARAMETER_SUBSCRIPTION_ID );
 
             Subscription sub = new Subscription( );
-            sub.setName( subscriptionId );
+            sub.setId( subscriptionId );
             sub.setActive( true );
-            sub.setUserName( userName );
+            sub.setUserId( userId );
             sub.setType( _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
 
             // update user subscription
@@ -296,10 +303,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                     addError( MSG_ERROR_GET_USER_SUBSCRIPTIONS );
                 }
 
-                model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
-                model.put( MARK_LAST_USER_ID, userName );
-                model.put( MARK_LAST_SUBSCRIPTION_TYPE_ID, subscriptionTypeId );
-
             }
             catch( Exception esub )
             {
@@ -308,10 +311,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             }
         }
 
-        model.put( MARK_SUBSCRIPTION_TYPE_LIST, _subscriptionTypes );        
-        model.put( MARK_SUBSCRIPTION_FEED_LIST, _subscriptionFeeds );
-
-        return getPage( PROPERTY_PAGE_TITLE_BROADCASTPROXY, TEMPLATE_TEST_BROADCASTPROXY, model );
+        return getTestBroadCastProxy( request );
     }
 
     /**
@@ -329,7 +329,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
 
         if ( request.getParameter( PARAMETER_USER_ID ) != null )
         {
-            String userName = request.getParameter( PARAMETER_USER_ID );
+            String userId = request.getParameter( PARAMETER_USER_ID );
             int subscriptionTypeId = -1;
             try
             {
@@ -344,9 +344,9 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             String subscriptionId = request.getParameter( PARAMETER_SUBSCRIPTION_ID );
 
             Subscription sub = new Subscription( );
-            sub.setName( subscriptionId );
+            sub.setId( subscriptionId );
             sub.setActive( false );
-            sub.setUserName( userName );
+            sub.setUserId( userId );
             sub.setType( _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
 
             // update user subscriptions
@@ -363,10 +363,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                     addError( MSG_ERROR_GET_USER_SUBSCRIPTIONS );
                 }
 
-                model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
-                model.put( MARK_LAST_USER_ID, userName );
-                model.put( MARK_LAST_SUBSCRIPTION_TYPE_ID, subscriptionTypeId );
-
             }
             catch( Exception esub )
             {
@@ -375,10 +371,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             }
         }
 
-        model.put( MARK_SUBSCRIPTION_TYPE_LIST, _subscriptionTypes );        
-        model.put( MARK_SUBSCRIPTION_FEED_LIST, _subscriptionFeeds );
-
-        return getPage( PROPERTY_PAGE_TITLE_BROADCASTPROXY, TEMPLATE_TEST_BROADCASTPROXY, model );
+        return getTestBroadCastProxy( request );
     }
 
     /**
@@ -390,22 +383,22 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
         {
             _subscriptionTypes = new ReferenceList( );
             _subscriptionFeeds = BroadcastService.getInstance( ).getFeeds( );
-            
-            Map<String,String> mapTypes = new HashMap<>();
-            for ( Feed feed : _subscriptionFeeds ) 
+
+            Map<String, String> mapTypes = new HashMap<>( );
+            for ( Feed feed : _subscriptionFeeds )
             {
-                mapTypes.put(feed.getType( ), feed.getType( ) );
+                mapTypes.put( feed.getType( ), feed.getType( ) );
             }
-            
-            int i=0;
-            for (String feedType : mapTypes.keySet( ) )
+
+            int i = 0;
+            for ( String feedType : mapTypes.keySet( ) )
             {
-                if (_currentFeedType == null ) _currentFeedType = feedType;
-                
-                _subscriptionTypes.addItem( String.valueOf(i++), feedType );
+                if ( _currentFeedType == null )
+                    _currentFeedType = feedType;
+
+                _subscriptionTypes.addItem( String.valueOf( i++ ), feedType );
             }
-        }        
+        }
     }
-            
 
 }

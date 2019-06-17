@@ -1,0 +1,205 @@
+<#macro getLabelFromList code list >
+    <#list list as refItem>
+        <#if refItem.code?string == code?string >
+${refItem.name}
+        </#if>
+    </#list>
+</#macro>
+
+    <div class="box-header">
+            <h3 class="box-title">#i18n{broadcastproxy.myDashboard.title}</h3>
+            <@messages errors=errors />
+            <@messages infos=infos />
+            
+            Subscription list for ${user.email!''} (${broadcastproxy!'?'}) : <br>
+    </div>
+    <div class="box-body">
+
+    <@row>
+    <@columns>
+        
+        <#list subscription_feeds_by_type?keys as feeds_type >
+        <div class="container feedsTypeDiv" id="div_feeds_type_${feeds_type}" >
+            
+            <h3 class="heading-title">#i18n{broadcastproxy.dashboard.listUserSubscriptionsTitle}
+                (<@getLabelFromList feeds_type subscription_types />)</h3>
+            
+            
+                <fieldset>
+                <@formGroup>
+            
+                <ul>
+                <#list subscription_feeds_by_type[feeds_type] as feed >
+                    <#assign activeSub = false >
+
+                    <#if subscription_list_by_type[feeds_type]?hasContent >
+                    <#list subscription_list_by_type[feeds_type] as sub>
+                        <#if sub.id = feed.id && sub.type = feed.type  >
+                            <#assign userSub = sub >
+                            <#assign activeSub = userSub.isActive( ) >
+                            <#if sub.data?hasContent>
+                                <#assign userSubData = sub.data?keys >
+                            </#if>
+                        </#if>
+                    </#list>
+                    </#if>
+                            
+                    <li>
+                        <div class="feedDiv">
+                        <input type="checkbox" id="SUB_${feed.type}_${feed.id}" <#if activeSub >checked="checked"</#if> class="subscriptionCheckBox" />   
+                            ${feed.name}
+
+                        <#if feed.data?hasContent && 0 < feed.data?size >
+                            <br>
+                            
+                            <#assign refThemeList = feed.data?keys />
+
+                            <ul>
+                            <#list refThemeList as theme >
+                                <li> 
+                                    <#assign check="">
+                                    <#if userSubData?hasContent>
+                                    <#list userSubData as activeTheme>
+                                        <#if activeTheme == theme >
+                                            <#assign check="checked=checked">
+                                        </#if>
+                                    </#list>
+                                    </#if>
+
+                                    <input type="checkbox" id="DATA_${feed.type}_${feed.id}_${theme}" ${check} class="subscriptionDataCheckBox" /> 
+                                    ${feed.data[theme]}
+                                </li>
+                            </#list>
+                            </ul>
+
+                        </#if>
+                        </div>
+                    </li>
+                </#list>    
+                </ul>
+                        
+                </@formGroup>                
+                </fieldset>
+
+        </div>
+        </#list>
+        
+        <div class="container">
+            
+        <@formGroup>
+                <#if subscription_feeds_by_type?hasContent >
+                <a class="btn btn-primary btn-small" id='updateUserSubscriptions' title='#i18n{portal.util.labelModify}'  >
+                    #i18n{portal.util.labelModify}
+                </a>
+                </#if>
+        </@formGroup>  
+        </div>
+  </@columns>
+</@row>
+
+</div>
+
+<!-- update subscriptions -->
+<script  type="text/javascript" >
+    
+var urlUpdateSubscriptions  = "jsp/site/Portal.jsp?page=broadcastproxyMyDashboard&action=updateUserSubscriptions";
+
+function push ( json ) {
+      $.ajax({
+            type: "POST",
+            url: urlUpdateSubscriptions,
+            dataType: "json",
+            contentType: "application/json",
+            success: function(data){
+                if (data.status == "OK") {
+                    alert( "Abonnement(s) mis à jour") ;
+                } else {
+                    alert( "Un problème est survenu lors de la mise à jour des abonnements : " + data.result);
+                }
+            },
+            failure: function(errMsg) {
+                alert( "Un problème est survenu lors de la mise à jour des abonnements : " + errMsg.result);
+            },
+            data: JSON.stringify(json)
+      });
+}
+        
+$( function( ) {
+    $('#updateUserSubscriptions').on("click",function( ){
+        
+        jsonFeedTypesList = [] ;
+            
+        $(".feedsTypeDiv").each( function( ){
+            feedsType = $(this).attr("id").substring(15) ;
+            jsonSubList = [];
+            
+            $(this).find(".feedDiv").each( function( ){
+                subCheckBox = $(this).find( ".subscriptionCheckBox").first( ) ;
+                jsonSubDataList = [];
+                feedId = subCheckBox.attr("id").substring( 5 + feedsType.length );    
+                    
+                $(this).find(".subscriptionDataCheckBox").each( function( ){
+                    dataId = $(this).attr("id").substring( 7 + feedsType.length + feedId.length );    
+                    data = {
+                        "id" : dataId,
+                        "active" : ($(this).is(':checked')?"1":"0")
+                    }
+                    jsonSubDataList.push( data );
+    
+                }).promise().done( function() {
+                    jsonSub = {
+                        "id" : feedId,
+                        "type" : feedsType,
+                        "active" : (subCheckBox.is(':checked')?"1":"0"),
+                        "data" : jsonSubDataList
+                    }
+
+                    jsonSubList.push( jsonSub );
+                });
+                
+            }).promise().done( function() {
+            
+                jsonFeedsType = {
+                    "id" : feedsType,
+                    "subscriptions" : jsonSubList
+                }
+
+                jsonFeedTypesList.push( jsonFeedsType );
+            });
+        }).promise().done( function( ) {    
+
+            json =  {
+                "userId" : "${user.email!''}",
+                "feedTypes" : jsonFeedTypesList
+            }
+            
+            // asynchronous call to the server
+            console.log( json );
+            push(json);
+        });
+    });
+ 
+
+      
+});
+    
+    
+    /* EXAMPLE JSON
+list =[]
+list.push( sub );
+
+feedType = {
+  "id" : "myType",
+  "subList" : list
+}
+
+feedTypes = [];
+feedTypes.push( feedType) ;
+
+jsonObj = {
+      "USER" : "the user",
+      "feedTypes" : feedTypes
+}
+*/
+
+</script>

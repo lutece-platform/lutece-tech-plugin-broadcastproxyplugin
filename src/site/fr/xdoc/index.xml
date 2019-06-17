@@ -11,13 +11,31 @@
             </p>
             -->
             <subsection name="Introduction">
-                <p></p>
+                <p>Plugin de gestion générique d'abonnements / désabonnements à des listes de diffusion de flux de contenus 
+                    de type lettre d'informations (Newsletters), alertes SMS, etc...</p>
+                    <p>Les abonnements de l'utilisateur sont présentés et modifiables dans son tableau de bord (MyDashboard).</p>
             </subsection>
             <subsection name="Configuration">
-                <p></p>
+                <p>Les données gérées sont :</p>
+                <ul>
+                    <li>Des fournisseurs de contenus ("providers")</li>
+                    <li>Des types de contenus définis par le bean du fournisseur ( "feed type")</li>
+                    <li>Des flux de contenus ("feed")</li>
+                    <li>Des données spécifiques complémentaires à ces flux, comme par exemple des thématiques ("data")</li>
+                    <li>Les abonnements utilisateur à ces flux ("subscriptions")</li>
+                    <li>Les données spécifiques du flux sélectionnées pour l'utilisateur ("data")</li>
+                </ul>
+                <p>Le bean du fournisseur de contenu est défini dans le contexte XML.</p>
+                <p>La liste des types de contenus présentés à l'utilisateur dans le tableau de bord (myDashboard) 
+                    est définie avec la propriété de site (dsKey) : "broadcastproxy.site_property.mydashboard.feedtypes", et est 
+                modifiable depuis dans le menu "Gestion des propriétés du site".</p>
+                <p>Les libellés personnalisés des types de flux, noms de flux et nom des données spécifiques des flux sont 
+                    gérés dans une liste de référence
+                    
             </subsection>
             <subsection name="Usage">
-                <p></p>
+                <p>Un bean spécifique doit être implémenté pour interfacer les APIs du fournisseur de service 
+                    de diffusion des flux de contenus. Il doit étendre l'interface IBroadcastproxyProvider.</p>
             </subsection>
         </section>
     </body>

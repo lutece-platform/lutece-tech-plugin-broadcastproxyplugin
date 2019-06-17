@@ -109,7 +109,8 @@ public interface IBroadcastProvider
 
     /**
      * get feed list
+     * 
      * @return the list
      */
-    List<Feed> getFeeds( ) ;
+    List<Feed> getFeeds( );
 }

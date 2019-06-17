@@ -96,17 +96,17 @@ public class MockProvider implements IBroadcastProvider
     {
 
         Subscription sub1 = new Subscription( );
-        sub1.setName( "EXAMPLE_ONE" );
+        sub1.setId( "EXAMPLE_ONE" );
         sub1.setUserId( userId );
         sub1.setActive( false );
         sub1.setType( typeSubsciption );
         Map<String, String> mapDatas = new HashMap<>( );
-        mapDatas.put( "T1", "theme1");
-        mapDatas.put( "T2", "theme2");
+        mapDatas.put( "T1", "theme1" );
+        mapDatas.put( "T2", "theme2" );
         sub1.setData( mapDatas );
 
         Subscription sub2 = new Subscription( );
-        sub2.setName( "EXAMPLE_TWO" );
+        sub2.setId( "EXAMPLE_TWO" );
         sub2.setUserId( userId );
         sub2.setActive( true );
         sub2.setType( typeSubsciption );
@@ -125,34 +125,34 @@ public class MockProvider implements IBroadcastProvider
     {
         return true;
     }
-    
+
     @Override
-    public List<Feed> getFeeds() {
-        List<Feed> list = new ArrayList<>();
-        
-        Feed testFeed = new Feed();
+    public List<Feed> getFeeds( )
+    {
+        List<Feed> list = new ArrayList<>( );
+
+        Feed testFeed = new Feed( );
         testFeed.setActive( true );
-        testFeed.setName("EXAMPLE_ONE");
-        testFeed.setId("ONE");
-        testFeed.setDescription("Test");
-        testFeed.setType("TEST");
+        testFeed.setName( "EXAMPLE_ONE" );
+        testFeed.setId( "ONE" );
+        testFeed.setDescription( "Test" );
+        testFeed.setType( "TEST" );
         Map<String, String> mapDatas = new HashMap<>( );
-        mapDatas.put( "T1", "theme1");
-        mapDatas.put( "T2", "theme2");
-        testFeed.setData(mapDatas);
-        
+        mapDatas.put( "T1", "theme1" );
+        mapDatas.put( "T2", "theme2" );
+        testFeed.setData( mapDatas );
+
         list.add( testFeed );
-        
-        
-        Feed testFeed2 = new Feed();
+
+        Feed testFeed2 = new Feed( );
         testFeed2.setActive( false );
-        testFeed2.setName("EXAMPLE_TWO");
-        testFeed2.setId("TWO");
-        testFeed2.setDescription("Test");
-        testFeed2.setType("TEST");
-        
+        testFeed2.setName( "EXAMPLE_TWO" );
+        testFeed2.setId( "TWO" );
+        testFeed2.setDescription( "Test" );
+        testFeed2.setType( "TEST" );
+
         list.add( testFeed2 );
-        
+
         return list;
     }
 
