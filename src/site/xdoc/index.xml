@@ -3,6 +3,9 @@
     <properties>
         <title>Plugin broadcastproxy</title>
     </properties>
+    <head>
+        <meta name="keywords" content="newsletter, feed, subscription, provider, proxy" />
+    </head>
     <body>
         <section name="Plugin broadcastproxy">
             <!--
@@ -10,14 +13,33 @@
                 <img src="images/broadcastproxy.png" />
             </p>
             -->
-            <subsection name="Introduction">
-                <p></p>
+           <subsection name = "Introduction">
+                <p> Generic Management Plugin for Subscriptions / Unsubscriptions to Content Streaming Lists
+                    newsletters, SMS alerts, etc ...  </p>
+                    <p> The subscriptions of the user are presented and updatable in his dashboard (MyDashboard).  </p>
             </subsection>
-            <subsection name="Configuration">
-                <p></p>
+            <subsection name = "Configuration">
+                <p> The managed data is:  </p>
+                <ul>
+                    <li> Content providers  </li>
+                    <li> Content types defined by the provider bean  </li>
+                    <li> Content feeds ("feed")  </li>
+                    <li> Specific data in  complement with these flows, such as thematic ("data")  </li>
+                    <li> User subscriptions to those feeds ("subscriptions")  </li>
+                    <li> The specific feed data selected for the user ("data")  </li>
+                </ul>
+                <p> The content provider bean is defined (injected) in the XML context.  </p>
+                <p> The list of content types presented to the user in the dashboard (myDashboard)
+                    is defined with the site property (dsKey): "broadcastproxy.site_property.mydashboard.feedtypes", and is
+                can be changed from the "Manage Site Properties" menu.  </p>
+                <p> The custom labels for feed types, feed names, and feed-specific data names are
+                    managed in a reference list  </p>
+                    
+                    
             </subsection>
-            <subsection name="Usage">
-                <p></p>
+            <subsection name = "Usage">
+                <p> A specific bean must be implemented to interface the APIs of the service provider
+                    broadcasting content streams. It needs to extend the IBroadcastproxyProvider interface.  </p>
             </subsection>
         </section>
     </body>

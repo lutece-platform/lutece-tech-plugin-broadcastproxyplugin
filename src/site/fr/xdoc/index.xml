@@ -3,6 +3,9 @@
     <properties>
         <title>Plugin broadcastproxy</title>
     </properties>
+    <head>
+        <meta name="keywords" content="newsletter, flux, abonnement, proxy" />
+    </head>
     <body>
         <section name="Plugin broadcastproxy">
             <!--
@@ -30,7 +33,8 @@
                     est définie avec la propriété de site (dsKey) : "broadcastproxy.site_property.mydashboard.feedtypes", et est 
                 modifiable depuis dans le menu "Gestion des propriétés du site".</p>
                 <p>Les libellés personnalisés des types de flux, noms de flux et nom des données spécifiques des flux sont 
-                    gérés dans une liste de référence
+                    gérés dans une liste de référence</p>
+                    
                     
             </subsection>
             <subsection name="Usage">
