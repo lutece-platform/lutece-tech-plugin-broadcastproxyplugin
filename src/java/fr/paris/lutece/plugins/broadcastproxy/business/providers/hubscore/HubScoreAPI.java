@@ -44,6 +44,7 @@ import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.util.httpaccess.HttpAccess;
 import fr.paris.lutece.util.httpaccess.HttpAccessException;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,6 +99,8 @@ public class HubScoreAPI
     // Instance variables
     private String _strNewsletterToken;
     private String _strAlertToken;
+    private LocalDateTime _newsletterTokenExpiredTime;
+    private LocalDateTime _alertTokenExpiredTime;
     private String _userName;
     private String _userId;
 
@@ -390,9 +393,12 @@ public class HubScoreAPI
      */
     public String getNewsletterToken( boolean forceRefresh ) throws HttpAccessException, IOException
     {
-        if ( _strNewsletterToken == null || forceRefresh )
+        if ( _strNewsletterToken == null || forceRefresh ||
+                _newsletterTokenExpiredTime.isAfter( LocalDateTime.now( ) )  )
         {
             _strNewsletterToken = getToken( LOGIN_AUTH_NEWSLETTER, PASSWORD_AUTH_NEWSLETTER );
+            // hubscore token is valid 12 hours
+            _newsletterTokenExpiredTime = LocalDateTime.now( ).plusHours( 10 );
         }
 
         return _strNewsletterToken;
@@ -408,9 +414,12 @@ public class HubScoreAPI
      */
     public String getAlertToken( boolean forceRefresh ) throws HttpAccessException, IOException
     {
-        if ( _strAlertToken == null || forceRefresh )
+        if ( _strAlertToken == null || forceRefresh  ||
+                _alertTokenExpiredTime.isAfter( LocalDateTime.now( ) )  )
         {
             _strAlertToken = getToken( LOGIN_AUTH_ALERT, PASSWORD_AUTH_ALERT );
+            // hubscore token is valid 12 hours
+            _alertTokenExpiredTime = LocalDateTime.now( ).plusHours( 10 );
         }
 
         return _strAlertToken;
