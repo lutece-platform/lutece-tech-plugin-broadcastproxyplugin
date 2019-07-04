@@ -29,8 +29,8 @@ import fr.paris.lutece.portal.service.util.AppPropertiesService;
 public class HubScoreHttpAccess {	
 
     // get proxy from HttpAccess properties
-    private static final String PROXY_ADR = AppPropertiesService.getProperty( "httpAccess.proxyHost" );
-    private static final int PROXY_PORT = AppPropertiesService.getPropertyInt( "httpAccess.proxyPort", 3128 );
+    private static final String PROXY_ADR = AppPropertiesService.getProperty( "broadcastproxy.proxyHost" );
+    private static final int PROXY_PORT = AppPropertiesService.getPropertyInt( "broadcastproxy.proxyPort", 3128 );
 
 	public HttpResponse doGet( String strUrl, Map<String, String> headers ) {
 		
