@@ -154,7 +154,6 @@ public class HubScoreProvider implements IBroadcastProvider
 
                     isFirst = false;
                 }
-
             }
 
             String feedName = name.substring( 6 ); // name without "Optin_"
@@ -397,6 +396,11 @@ public class HubScoreProvider implements IBroadcastProvider
             {
                 String label = labelsMap.get( feedType + "." + feedId );
                 Feed feed = new Feed( feedId, ( label != null ? label : feedId ), feedType );
+                
+                String description = labelsMap.get( feedType + "." + feedId + ".description"  );
+                
+                if (description != null ) feed.setDescription( description );
+                
                 String datas [ ] = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feeds.type." + feedType + "." + feedId + ".data", "" )
                         .split( "," );
                 if ( datas.length > 0 )
@@ -404,7 +408,7 @@ public class HubScoreProvider implements IBroadcastProvider
                     Map<String, String> mapData = new HashMap<>( );
                     for ( String data : datas )
                     {
-                        String dataLabel = labelsMap.get( feedType + "." + feedId + "." + data );
+                        String dataLabel = labelsMap.get( feedType + "." + feedId + ".data." + data );
                         if ( !StringUtils.isBlank( data ) )
                             mapData.put( data, ( label != null ? dataLabel : data ) );
                     }

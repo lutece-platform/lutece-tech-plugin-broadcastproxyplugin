@@ -47,6 +47,7 @@ import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.xpage.MVCApplication;
 import fr.paris.lutece.portal.util.mvc.xpage.annotations.Controller;
 import fr.paris.lutece.portal.web.xpages.XPage;
+import fr.paris.lutece.util.json.ErrorJsonResponse;
 import fr.paris.lutece.util.json.JsonResponse;
 import fr.paris.lutece.util.json.JsonUtil;
 import java.io.BufferedReader;
@@ -82,18 +83,25 @@ public class BroadcastproxyXPage extends MVCApplication
      *            The request
      * @return true if authenticated
      */
-    private boolean isUserAuthenticated( HttpServletRequest request )
+    private String getMailUserAuthenticated( HttpServletRequest request )
     {
         LuteceUser user = null;
 
         if ( SecurityService.isAuthenticationEnable( ) )
         {
             user = SecurityService.getInstance( ).getRegisteredUser( request );
-            return ( user != null );
+            if ( user != null ) 
+            {
+                return user.getEmail( );
+            }
+            else
+            {
+                return null;
+            }
         }
         else
         {
-            return false;
+            return null;
         }
     }
 
@@ -112,6 +120,10 @@ public class BroadcastproxyXPage extends MVCApplication
     public XPage doUpdateUserSubscriptions( HttpServletRequest request )
     {
 
+        String mailUser = getMailUserAuthenticated( request );
+        
+        if (mailUser == null) return responseJSON( JsonUtil.buildJsonResponse(new ErrorJsonResponse( "User not authentified." ) ) );
+        
         String strJson;
         try
         {
@@ -128,12 +140,12 @@ public class BroadcastproxyXPage extends MVCApplication
         }
         catch( IOException e )
         {
-            return responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( "An error occured while receiving the response" ) ) );
+            return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "An error occured while receiving the response" ) ) );
         }
 
         if ( updateSubscriptions( strJson ) != true )
         {
-            responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( "An error occured while receiving the response" ) ) );
+            responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "An error occured while receiving the response" ) ) );
         }
 
         return responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( "ok" ) ) );
