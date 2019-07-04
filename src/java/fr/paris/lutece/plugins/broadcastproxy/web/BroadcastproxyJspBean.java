@@ -184,16 +184,15 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                     sub.setActive( false );
                     sub.setUserId( userId );
                     sub.setType( feed.getType( ) );
-                    for (String data : feed.getData( ).keySet( ) )
+                    for ( String data : feed.getData( ).keySet( ) )
                     {
-                        sub.addDataItem( data , "0" );
+                        sub.addDataItem( data, "0" );
                     }
-                    
+
                     subscriptionsList.add( sub );
                 }
             }
-            
-            
+
             // Update states of subscription
             Enumeration enum1 = request.getParameterNames( );
             while ( enum1.hasMoreElements( ) )
@@ -206,24 +205,25 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                 if ( fieldName.startsWith( "SUB_" + _currentFeedType + "_" ) )
                 {
                     String feedId = fieldName.substring( _currentFeedType.length( ) + 5 );
-                    for (Subscription sub : subscriptionsList )
+                    for ( Subscription sub : subscriptionsList )
                     {
-                        if ( sub.getId( ).equals( feedId ) ) sub.setActive( true );
+                        if ( sub.getId( ).equals( feedId ) )
+                            sub.setActive( true );
                     }
-                }    
+                }
 
                 // set subscription data state
-                if ( fieldName.startsWith( "DATA_" + _currentFeedType + "_" ) ) 
+                if ( fieldName.startsWith( "DATA_" + _currentFeedType + "_" ) )
                 {
                     String feedIdAndData = fieldName.substring( _currentFeedType.length( ) + 6 );
-                    String feedId = feedIdAndData.substring( 0, feedIdAndData.indexOf( "_") ) ; // feed id MUST NOT contain underscores
+                    String feedId = feedIdAndData.substring( 0, feedIdAndData.indexOf( "_" ) ); // feed id MUST NOT contain underscores
                     String data = feedIdAndData.substring( feedId.length( ) + 1 );
-                    
-                    for (Subscription sub : subscriptionsList )
+
+                    for ( Subscription sub : subscriptionsList )
                     {
-                        if ( sub.getId( ).equals( feedId ) ) 
+                        if ( sub.getId( ).equals( feedId ) )
                         {
-                            sub.addDataItem( data , "1" );
+                            sub.addDataItem( data, "1" );
                         }
                     }
                 }

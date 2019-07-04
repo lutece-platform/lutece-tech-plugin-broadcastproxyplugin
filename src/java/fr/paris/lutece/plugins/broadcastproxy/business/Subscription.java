@@ -174,15 +174,17 @@ public class Subscription
     {
         this._data = data;
     }
-    
+
     /**
      * add a data
+     * 
      * @param strName
-     * @param strValue 
+     * @param strValue
      */
     public void addDataItem( String strName, String strValue )
     {
-        if (_data == null ) _data = new HashMap<>( );
+        if ( _data == null )
+            _data = new HashMap<>( );
         this._data.put( strName, strValue );
     }
 }

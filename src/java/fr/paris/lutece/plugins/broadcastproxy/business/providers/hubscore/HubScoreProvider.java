@@ -129,13 +129,13 @@ public class HubScoreProvider implements IBroadcastProvider
         }
         else
         {
-            
+
             String key = "Date_Desinscription_" + name.substring( 6 );
-            
-            if (sub.getType( ).equals( Constants.TYPE_NEWSLETTER )  )
+
+            if ( sub.getType( ).equals( Constants.TYPE_NEWSLETTER ) )
                 key = "Date_Dsinscription_" + name.substring( 6 ); // !!!
 
-            mapDatas.put( key , getFormattedCurrentLocaleDateTime( ) );            
+            mapDatas.put( key, getFormattedCurrentLocaleDateTime( ) );
         }
 
         // add themes
@@ -396,11 +396,12 @@ public class HubScoreProvider implements IBroadcastProvider
             {
                 String label = labelsMap.get( feedType + "." + feedId );
                 Feed feed = new Feed( feedId, ( label != null ? label : feedId ), feedType );
-                
-                String description = labelsMap.get( feedType + "." + feedId + ".description"  );
-                
-                if (description != null ) feed.setDescription( description );
-                
+
+                String description = labelsMap.get( feedType + "." + feedId + ".description" );
+
+                if ( description != null )
+                    feed.setDescription( description );
+
                 String datas [ ] = AppPropertiesService.getProperty( "broadcastproxy.hubscore.feeds.type." + feedType + "." + feedId + ".data", "" )
                         .split( "," );
                 if ( datas.length > 0 )

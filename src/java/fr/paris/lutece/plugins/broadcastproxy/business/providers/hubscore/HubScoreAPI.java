@@ -79,7 +79,7 @@ public class HubScoreAPI
     // Markers
     private static final String MARK_HEADER_AUTHORIZATION = AppPropertiesService.getProperty( "broadcastproxy.hubscore.MARK_HEADER_AUTHORIZATION" );
     private static final String MARK_HEADER_BEARER = AppPropertiesService.getProperty( "broadcastproxy.hubscore.MARK_HEADER_BEARER" );
-    
+
     // A mettre dans un fichier .properties
     private static final String LOGIN_AUTH_NEWSLETTER = AppPropertiesService.getProperty( "broadcastproxy.hubscore.LOGIN_AUTH_NEWSLETTER" );
     private static final String PASSWORD_AUTH_NEWSLETTER = AppPropertiesService.getProperty( "broadcastproxy.hubscore.PASSWORD_AUTH_NEWSLETTER" );
@@ -88,10 +88,10 @@ public class HubScoreAPI
 
     // Errors
     private static final String ERROR_MSG_INVALID_TOKEN_MESSAGE = AppPropertiesService.getProperty( "broadcastproxy.hubscore.ERROR_MSG_INVALID_TOKEN_MESSAGE" );
-    private static final String ERROR_INVALID_TOKEN_CODE = AppPropertiesService.getProperty( "broadcastproxy.hubscore.ERROR_INVALID_TOKEN_CODE");
+    private static final String ERROR_INVALID_TOKEN_CODE = AppPropertiesService.getProperty( "broadcastproxy.hubscore.ERROR_INVALID_TOKEN_CODE" );
     private static final String ERROR_MSG_NO_ERROR_CODE = "#i18n{msg.hubscore.ERROR_MSG_NO_ERROR_CODE";
     private static final String ERROR_MSG_PARSE_JSON = "#i18n{msg.hubscore.ERROR_MSG_PARSE_JSON}";
-    
+
     // Instance variables
     private String _strNewsletterToken;
     private String _strAlertToken;
@@ -159,8 +159,9 @@ public class HubScoreAPI
      * @return the response message
      * @throws IOException
      */
-    public String manageUser( String eMail, String typeSubsciption, String action, boolean forceTokenRefresh ) throws IOException {
-        
+    public String manageUser( String eMail, String typeSubsciption, String action, boolean forceTokenRefresh ) throws IOException
+    {
+
         ObjectMapper mapper = new ObjectMapper( );
 
         String strUrl = URL_SITE_HUB_SCORE + URL_PATH_DATABASE_HUB_SCORE + PATH_MANAGE_USR;
@@ -176,13 +177,13 @@ public class HubScoreAPI
 
         if ( Constants.ACTION_ADD.equals( action ) )
         {
-        	return callDoPost( strUrl, params, hmHeaders, typeSubsciption, forceTokenRefresh );
+            return callDoPost( strUrl, params, hmHeaders, typeSubsciption, forceTokenRefresh );
         }
 
         if ( Constants.ACTION_DELETE.equals( action ) )
         {
-        	String strHubScoreUserId = getHubScoreUserId(eMail, typeSubsciption, forceTokenRefresh);
-        	strUrl = strUrl + "/" + strHubScoreUserId;
+            String strHubScoreUserId = getHubScoreUserId( eMail, typeSubsciption, forceTokenRefresh );
+            strUrl = strUrl + "/" + strHubScoreUserId;
             return callDoDelete( strUrl, hmHeaders, typeSubsciption, forceTokenRefresh );
         }
 
@@ -206,18 +207,18 @@ public class HubScoreAPI
         Map<String, String> mapHeaders = new HashMap<>( );
 
         try
-        {        	
-        	strResponse = callDoGet(strUrl, mapHeaders, typeSubsciption, forceTokenRefresh);        	
+        {
+            strResponse = callDoGet( strUrl, mapHeaders, typeSubsciption, forceTokenRefresh );
         }
         catch( Exception e )
-        {        	
+        {
             String strError = "Error occured while getting user subscriptions list from '" + strUrl + "' : ";
             AppLogService.error( strError + e.getMessage( ), e );
         }
-        
+
         return strResponse;
-    }    
-    
+    }
+
     /**
      * update subscriptions
      * 
@@ -255,7 +256,7 @@ public class HubScoreAPI
             AppLogService.info( "Trying to update subscription of : " + userName );
 
             String response = callDoPatch( strUrl, mapSubscriptions, mapHeaders, typeSubscription, forceTokenRefresh );
-            
+
             return response;
         }
         catch( IOException e )
@@ -270,11 +271,13 @@ public class HubScoreAPI
 
     /**
      * get Token by subscription type
-     * @throws IOException 
-     * @throws LuteceInitException 
+     * 
+     * @throws IOException
+     * @throws LuteceInitException
      * 
      */
-    private String getToken( String typeSubscription, boolean forceRefresch ) throws IOException {
+    private String getToken( String typeSubscription, boolean forceRefresch ) throws IOException
+    {
         if ( Constants.TYPE_NEWSLETTER.equals( typeSubscription ) )
         {
             return getNewsletterToken( forceRefresch );
@@ -293,11 +296,11 @@ public class HubScoreAPI
      * 
      * @param forceRefresh
      * @return the token as string
-     * @throws IOException 
+     * @throws IOException
      */
-    public String getNewsletterToken( boolean forceRefresh ) throws IOException {
-        if ( _strNewsletterToken == null || forceRefresh ||
-                _newsletterTokenExpiredTime.isAfter( LocalDateTime.now( ) )  )
+    public String getNewsletterToken( boolean forceRefresh ) throws IOException
+    {
+        if ( _strNewsletterToken == null || forceRefresh || _newsletterTokenExpiredTime.isAfter( LocalDateTime.now( ) ) )
         {
             _strNewsletterToken = getToken( LOGIN_AUTH_NEWSLETTER, PASSWORD_AUTH_NEWSLETTER );
             // hubscore token is valid 12 hours
@@ -312,11 +315,11 @@ public class HubScoreAPI
      * 
      * @param forceRefresh
      * @return the token as string
-     * @throws IOException 
+     * @throws IOException
      */
-    public String getAlertToken( boolean forceRefresh ) throws IOException {
-        if ( _strAlertToken == null || forceRefresh  ||
-                _alertTokenExpiredTime.isAfter( LocalDateTime.now( ) )  )
+    public String getAlertToken( boolean forceRefresh ) throws IOException
+    {
+        if ( _strAlertToken == null || forceRefresh || _alertTokenExpiredTime.isAfter( LocalDateTime.now( ) ) )
         {
             _strAlertToken = getToken( LOGIN_AUTH_ALERT, PASSWORD_AUTH_ALERT );
             // hubscore token is valid 12 hours
@@ -332,36 +335,35 @@ public class HubScoreAPI
      * @param strUsername
      * @param strPassword
      * @return the token
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
      * @throws HttpAccessException
-     * @throws LuteceInitException 
+     * @throws LuteceInitException
      */
-    private String getToken( String strUsername, String strPassword ) throws IOException {
+    private String getToken( String strUsername, String strPassword ) throws IOException
+    {
         ObjectMapper mapper = new ObjectMapper( );
-    	HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess();
-    	HttpResponse httpResponse;
-    	String strToken;
+        HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess( );
+        HttpResponse httpResponse;
+        String strToken;
 
         String strUrl = URL_SITE_HUB_SCORE + URL_PATH_AUTHENTICATION_HUB_SCORE;
 
-		List<BasicNameValuePair> listParams = new ArrayList<>( );
-		listParams.add( new BasicNameValuePair( "Username", strUsername ));
-		listParams.add( new BasicNameValuePair( "Password", strPassword ));
-		//listParams.add( new BasicNameValuePair( "Password", "toto" ));
-					
-		httpResponse = hubscorehttpaccess.doPost( strUrl, listParams, null );
+        List<BasicNameValuePair> listParams = new ArrayList<>( );
+        listParams.add( new BasicNameValuePair( "Username", strUsername ) );
+        listParams.add( new BasicNameValuePair( "Password", strPassword ) );
+        // listParams.add( new BasicNameValuePair( "Password", "toto" ));
 
-		strToken = (String) mapper.readValue( httpToStrResponse(httpResponse), HashMap.class ).get( "token" );			
+        httpResponse = hubscorehttpaccess.doPost( strUrl, listParams, null );
 
-        return strToken;        
+        strToken = (String) mapper.readValue( httpToStrResponse( httpResponse ), HashMap.class ).get( "token" );
+
+        return strToken;
     }
-    
-    
-    /*** HTTP METHODS ***/ 
-    
-    
+
+    /*** HTTP METHODS ***/
+
     /**
      * call get method
      * 
@@ -370,35 +372,38 @@ public class HubScoreAPI
      * @param typeSubsciption
      * @param forceTokenRefresh
      * @return the response message
-     * @throws IOException 
+     * @throws IOException
      */
-    private String callDoGet(String strUrl, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh) throws IOException {
-    	
-    	String strToken;
-    	HttpResponse httpResponse;
-    	HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess();
-    	
-		strToken = getToken( typeSubsciption, forceTokenRefresh );
-		
-		mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );  
-		
-		// Do Get
-		httpResponse = hubscorehttpaccess.doGet(strUrl, mapHeaders);
-    	
-		// If error
-		if (httpResponse != null && httpResponse.getStatusLine().getStatusCode() != 200) {
-			String strErrorMsg = getHubScoreErrorMessage(httpToStrResponse(httpResponse));
-			
-			if (strErrorMsg.equals(ERROR_MSG_INVALID_TOKEN_MESSAGE)) {					
-				strToken = getToken(typeSubsciption, true);
-				mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );            
-				httpResponse = hubscorehttpaccess.doGet(strUrl, mapHeaders);				
-			}			
-		}
-		    	
-    	return httpToStrResponse(httpResponse);
+    private String callDoGet( String strUrl, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh ) throws IOException
+    {
+
+        String strToken;
+        HttpResponse httpResponse;
+        HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess( );
+
+        strToken = getToken( typeSubsciption, forceTokenRefresh );
+
+        mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+
+        // Do Get
+        httpResponse = hubscorehttpaccess.doGet( strUrl, mapHeaders );
+
+        // If error
+        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+        {
+            String strErrorMsg = getHubScoreErrorMessage( httpToStrResponse( httpResponse ) );
+
+            if ( strErrorMsg.equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
+            {
+                strToken = getToken( typeSubsciption, true );
+                mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+                httpResponse = hubscorehttpaccess.doGet( strUrl, mapHeaders );
+            }
+        }
+
+        return httpToStrResponse( httpResponse );
     }
-        
+
     /**
      * call post method
      * 
@@ -408,45 +413,49 @@ public class HubScoreAPI
      * @param typeSubsciption
      * @param forceTokenRefresh
      * @return the reponse message
-     * @throws IOException 
+     * @throws IOException
      */
-    private String callDoPost(String strUrl, Map<String, String> params, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh) throws IOException {
-    	
-    	String strToken;
-    	HttpResponse httpResponse;
-    	HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess();
-    	List<BasicNameValuePair> listParams = new ArrayList<>( );    	
+    private String callDoPost( String strUrl, Map<String, String> params, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh )
+            throws IOException
+    {
 
-		strToken = getToken( typeSubsciption, forceTokenRefresh );
-		
-		mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken ); 
+        String strToken;
+        HttpResponse httpResponse;
+        HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess( );
+        List<BasicNameValuePair> listParams = new ArrayList<>( );
 
-		// add request parameters
-		if ( params != null )
-		{
-		    for ( String paramsKey : params.keySet( ) )
-		    {
-		    	listParams.add( new BasicNameValuePair( paramsKey, params.get(paramsKey) ));
-		    }
-		}	
-		
-		// Do Post
-		httpResponse = hubscorehttpaccess.doPost(strUrl, listParams, mapHeaders);
-    	
-		// If error
-		if (httpResponse != null && httpResponse.getStatusLine().getStatusCode() != 200) {
-			String strErrorMsg = getHubScoreErrorMessage(httpToStrResponse(httpResponse));
-			
-			if (strErrorMsg.equals(ERROR_MSG_INVALID_TOKEN_MESSAGE)) {					
-				strToken = getToken(typeSubsciption, true);
-				mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );            
-				httpResponse = hubscorehttpaccess.doGet(strUrl, mapHeaders);	
-			}			
-		}
-		    	
-    	return httpToStrResponse(httpResponse);   	
+        strToken = getToken( typeSubsciption, forceTokenRefresh );
+
+        mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+
+        // add request parameters
+        if ( params != null )
+        {
+            for ( String paramsKey : params.keySet( ) )
+            {
+                listParams.add( new BasicNameValuePair( paramsKey, params.get( paramsKey ) ) );
+            }
+        }
+
+        // Do Post
+        httpResponse = hubscorehttpaccess.doPost( strUrl, listParams, mapHeaders );
+
+        // If error
+        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+        {
+            String strErrorMsg = getHubScoreErrorMessage( httpToStrResponse( httpResponse ) );
+
+            if ( strErrorMsg.equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
+            {
+                strToken = getToken( typeSubsciption, true );
+                mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+                httpResponse = hubscorehttpaccess.doGet( strUrl, mapHeaders );
+            }
+        }
+
+        return httpToStrResponse( httpResponse );
     }
-    
+
     /**
      * call patch method
      * 
@@ -458,49 +467,52 @@ public class HubScoreAPI
      * @return
      * @throws HttpAccessException
      * @throws IOException
-     * @throws LuteceInitException 
+     * @throws LuteceInitException
      */
-    private String callDoPatch(String strUrl, Map<String, String> params, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh) throws IOException 
+    private String callDoPatch( String strUrl, Map<String, String> params, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh )
+            throws IOException
     {
-    	String strToken;
-    	HttpResponse httpResponse;
-    	HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess();
-    	List<BasicNameValuePair> listParams = new ArrayList<>( );    	
+        String strToken;
+        HttpResponse httpResponse;
+        HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess( );
+        List<BasicNameValuePair> listParams = new ArrayList<>( );
 
-    	ObjectMapper mapper = new ObjectMapper( );
+        ObjectMapper mapper = new ObjectMapper( );
 
-		strToken = getToken( typeSubsciption, forceTokenRefresh );
-		
-		mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken ); 
+        strToken = getToken( typeSubsciption, forceTokenRefresh );
 
-		// Add parameters
-		String strParamsInJson = mapper.writeValueAsString( params );
-		listParams.add(new BasicNameValuePair( "datas", strParamsInJson ) );
-		
-		// add request parameters
-		if ( params != null )
-		{
-		    for ( String paramsKey : params.keySet( ) )
-		    {
-		    	listParams.add( new BasicNameValuePair( paramsKey, params.get(paramsKey) ));
-		    }
-		}	
-		
-		// Do Patch
-		httpResponse = hubscorehttpaccess.doPatch(strUrl, listParams, mapHeaders);
-    	
-		// If error
-		if (httpResponse != null && httpResponse.getStatusLine().getStatusCode() != 204) {
-			String strErrorMsg = getHubScoreErrorMessage( httpToStrResponse(httpResponse));
-			
-			if (strErrorMsg.equals(ERROR_MSG_INVALID_TOKEN_MESSAGE)) {					
-				strToken = getToken(typeSubsciption, true);
-				mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );            
-				httpResponse = hubscorehttpaccess.doGet(strUrl, mapHeaders);	
-			}			
-		}
-    	
-		return httpToStrResponse(httpResponse);   	    	
+        mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+
+        // Add parameters
+        String strParamsInJson = mapper.writeValueAsString( params );
+        listParams.add( new BasicNameValuePair( "datas", strParamsInJson ) );
+
+        // add request parameters
+        if ( params != null )
+        {
+            for ( String paramsKey : params.keySet( ) )
+            {
+                listParams.add( new BasicNameValuePair( paramsKey, params.get( paramsKey ) ) );
+            }
+        }
+
+        // Do Patch
+        httpResponse = hubscorehttpaccess.doPatch( strUrl, listParams, mapHeaders );
+
+        // If error
+        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 204 )
+        {
+            String strErrorMsg = getHubScoreErrorMessage( httpToStrResponse( httpResponse ) );
+
+            if ( strErrorMsg.equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
+            {
+                strToken = getToken( typeSubsciption, true );
+                mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+                httpResponse = hubscorehttpaccess.doGet( strUrl, mapHeaders );
+            }
+        }
+
+        return httpToStrResponse( httpResponse );
     }
 
     /**
@@ -511,32 +523,35 @@ public class HubScoreAPI
      * @param typeSubsciption
      * @param forceTokenRefresh
      * @return the message
-     * @throws IOException 
+     * @throws IOException
      */
-    private String callDoDelete(String strUrl, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh) throws IOException {
-    	String strToken;
-    	HttpResponse httpResponse;
-    	HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess();
-    	
-		strToken = getToken( typeSubsciption, forceTokenRefresh );
-		
-		mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );  
-		
-		// Do Delete
-		httpResponse = hubscorehttpaccess.doDelete(strUrl, mapHeaders);
-    	
-		// If error
-		if (httpResponse != null && httpResponse.getStatusLine().getStatusCode() != 200) {
-			String strErrorMsg = getHubScoreErrorMessage( httpToStrResponse(httpResponse));
-			
-			if (strErrorMsg.equals(ERROR_MSG_INVALID_TOKEN_MESSAGE)) {					
-				strToken = getToken(typeSubsciption, true);
-				mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );            
-				httpResponse = hubscorehttpaccess.doGet(strUrl, mapHeaders);				
-			}			
-		}
-		    	
-    	return httpToStrResponse(httpResponse);    	  	
+    private String callDoDelete( String strUrl, Map<String, String> mapHeaders, String typeSubsciption, boolean forceTokenRefresh ) throws IOException
+    {
+        String strToken;
+        HttpResponse httpResponse;
+        HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess( );
+
+        strToken = getToken( typeSubsciption, forceTokenRefresh );
+
+        mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+
+        // Do Delete
+        httpResponse = hubscorehttpaccess.doDelete( strUrl, mapHeaders );
+
+        // If error
+        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+        {
+            String strErrorMsg = getHubScoreErrorMessage( httpToStrResponse( httpResponse ) );
+
+            if ( strErrorMsg.equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
+            {
+                strToken = getToken( typeSubsciption, true );
+                mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
+                httpResponse = hubscorehttpaccess.doGet( strUrl, mapHeaders );
+            }
+        }
+
+        return httpToStrResponse( httpResponse );
     }
 
     /**
@@ -544,11 +559,12 @@ public class HubScoreAPI
      * 
      * @param httpResponse
      * @return the response as string
-     * @throws IOException 
+     * @throws IOException
      */
-    private String httpToStrResponse (HttpResponse httpResponse) throws IOException {
+    private String httpToStrResponse( HttpResponse httpResponse ) throws IOException
+    {
 
-		StringBuilder strResponse = new StringBuilder();
+        StringBuilder strResponse = new StringBuilder( );
 
 		// Get response data in string
 		if ( httpResponse != null && httpResponse.getEntity( ) != null && httpResponse.getEntity( ).getContent( ) != null )
@@ -570,32 +586,41 @@ public class HubScoreAPI
      * @param strResponse
      * @return the error message
      */
-    private String getHubScoreErrorMessage(String strResponse) {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode nodes = null;
+    private String getHubScoreErrorMessage( String strResponse )
+    {
+        ObjectMapper mapper = new ObjectMapper( );
+        JsonNode nodes = null;
 
-            try {
-                    nodes = mapper.readTree(strResponse);
-            } catch (JsonProcessingException e) {
-                    throw new AppException( ERROR_MSG_PARSE_JSON, e);
-            } catch (IOException e) {
-                    throw new AppException( ERROR_MSG_PARSE_JSON, e);
+        try
+        {
+            nodes = mapper.readTree( strResponse );
+        }
+        catch( JsonProcessingException e )
+        {
+            throw new AppException( ERROR_MSG_PARSE_JSON, e );
+        }
+        catch( IOException e )
+        {
+            throw new AppException( ERROR_MSG_PARSE_JSON, e );
+        }
+
+        if ( !nodes.has( "code" ) )
+        {
+            throw new AppException( ERROR_MSG_NO_ERROR_CODE, null );
+        }
+
+        if ( nodes.has( "code" ) )
+        {
+            if ( nodes.get( "code" ).asInt( ) == Integer.valueOf( ERROR_INVALID_TOKEN_CODE ) )
+            {
+                if ( nodes.get( "message" ).asText( ).equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
+                {
+                    return ERROR_MSG_INVALID_TOKEN_MESSAGE;
+                }
             }
+        }
 
-            if (!nodes.has("code")) {
-                    throw new AppException(ERROR_MSG_NO_ERROR_CODE, null);
-            }
-
-            if (nodes.has("code")) {
-                    if (nodes.get("code").asInt() == Integer.valueOf(ERROR_INVALID_TOKEN_CODE)) {				
-                            if (nodes.get("message").asText().equals(ERROR_MSG_INVALID_TOKEN_MESSAGE) ){
-                                    return ERROR_MSG_INVALID_TOKEN_MESSAGE;					
-                            }						
-                    }
-            }
-
-            return null;
+        return null;
     }
-
 
 }

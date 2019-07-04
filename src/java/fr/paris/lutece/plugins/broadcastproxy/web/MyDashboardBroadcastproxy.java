@@ -82,7 +82,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     // constants
     private static final String DS_KEY_FEEDTYPES = "broadcastproxy.site_property.mydashboard.feedtypes";
     private static final String MYDASHBOARD_BROADCASTPROXY_ID = "broadcastproxy.myDashboard";
-    
+
     // Templates
     private static final String TEMPLATE_DASHBOARD = "skin/plugins/mydashboard/modules/broadcastproxy/broadcastproxy_mydashboard.html";
 
@@ -147,7 +147,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     @Override
     public String getComponentId( )
     {
-        return MYDASHBOARD_BROADCASTPROXY_ID ;
+        return MYDASHBOARD_BROADCASTPROXY_ID;
     }
 
     @Override

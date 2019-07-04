@@ -90,7 +90,7 @@ public class BroadcastproxyXPage extends MVCApplication
         if ( SecurityService.isAuthenticationEnable( ) )
         {
             user = SecurityService.getInstance( ).getRegisteredUser( request );
-            if ( user != null ) 
+            if ( user != null )
             {
                 return user.getEmail( );
             }
@@ -121,9 +121,10 @@ public class BroadcastproxyXPage extends MVCApplication
     {
 
         String mailUser = getMailUserAuthenticated( request );
-        
-        if (mailUser == null) return responseJSON( JsonUtil.buildJsonResponse(new ErrorJsonResponse( "User not authentified." ) ) );
-        
+
+        if ( mailUser == null )
+            return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
+
         String strJson;
         try
         {
