@@ -53,9 +53,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
 
 public class HubScoreProvider implements IBroadcastProvider
 {
@@ -112,6 +110,19 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public boolean update( Subscription sub ) throws Exception
     {
+        _hubScoreAPI.updateSubscribtions( sub.getUserId( ), subToMap( sub ), sub.getType( ), false );
+
+        return true;
+    }
+
+    /**
+     * get map from sub datas
+     * 
+     * @param sub
+     * @return the map
+     */
+    public Map<String, String> subToMap( Subscription sub )
+    {
         Map<String, String> mapDatas = new HashMap<>( );
 
         String name = sub.getId( );
@@ -162,17 +173,7 @@ public class HubScoreProvider implements IBroadcastProvider
             mapDatas.put( feedName, values );
         }
 
-        try
-        {
-            _hubScoreAPI.updateSubscribtions( sub.getUserId( ), mapDatas, sub.getType( ), false );
-        }
-        catch( Exception e )
-        {
-            // retry with refreshed token
-            _hubScoreAPI.updateSubscribtions( sub.getUserId( ), mapDatas, sub.getType( ), true );
-        }
-
-        return true;
+        return mapDatas;
     }
 
     @Override
@@ -214,13 +215,19 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public boolean updateSubscribtions( List<Subscription> subscriptionsList ) throws Exception
     {
+
+        Map<String, String> mapDatas = new HashMap<>( );
+        String feedType ;
+        String userId ;
+
+        if ( subscriptionsList.isEmpty( ) ) return false;
+
         for ( Subscription sub : subscriptionsList )
         {
-            boolean success = update( sub );
-
-            if ( !success )
-                return false;
+            mapDatas.putAll( subToMap( sub ) );
         }
+
+        _hubScoreAPI.updateSubscribtions( subscriptionsList.get(0).getUserId( ), mapDatas, subscriptionsList.get(0).getType( ), false );
 
         return true;
     }
