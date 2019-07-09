@@ -50,32 +50,32 @@ public interface IBroadcastProvider
      * 
      * @param userId
      * @param subscriptionId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return true if success
      * @throws java.lang.Exception
      */
-    boolean subscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception;
+    boolean subscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception;
 
     /**
      * unsubscribe
      * 
      * @param userId
      * @param subscriptionId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return true if success
      * @throws java.lang.Exception
      */
-    boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception;
+    boolean unsubscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception;
 
     /**
      * returns the user subscribtions list as list of Subscriptions beans
      * 
      * @param userId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return the list
      * @throws java.lang.Exception
      */
-    List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubsciption ) throws Exception;
+    List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception;
 
     /**
      * returns the user subscribtions list as a JSON string like :
@@ -83,11 +83,11 @@ public interface IBroadcastProvider
      * {"subscriptions":[{"name":"EXAMPLE_ONE","active":"0"},{"name":"EXAMPLE_TWO","active":"1","data":["data1","date2","data3"]}]}
      * 
      * @param userId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return a JSON string
      * @throws java.lang.Exception
      */
-    String getUserSubscriptionsAsJson( String userId, String typeSubsciption ) throws Exception;
+    String getUserSubscriptionsAsJson( String userId, String typeSubscription ) throws Exception;
 
     /**
      * update user subscriptions to the specified subscription list

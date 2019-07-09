@@ -68,7 +68,7 @@ public class MockProvider implements IBroadcastProvider
     }
 
     @Override
-    public String getUserSubscriptionsAsJson( String userId, String typeSubsciption )
+    public String getUserSubscriptionsAsJson( String userId, String typeSubscription )
     {
         return DEFAULT_USER_SUBSCRIPTIONS_JSON;
     }
@@ -80,26 +80,26 @@ public class MockProvider implements IBroadcastProvider
     }
 
     @Override
-    public boolean subscribe( String userId, String subscriptionId, String typeSubsciption )
+    public boolean subscribe( String userId, String subscriptionId, String typeSubscription )
     {
         return true;
     }
 
     @Override
-    public boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption )
+    public boolean unsubscribe( String userId, String subscriptionId, String typeSubscription )
     {
         return true;
     }
 
     @Override
-    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubsciption ) throws Exception
+    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception
     {
 
         Subscription sub1 = new Subscription( );
         sub1.setId( "EXAMPLE_ONE" );
         sub1.setUserId( userId );
         sub1.setActive( false );
-        sub1.setType( typeSubsciption );
+        sub1.setType( typeSubscription );
         Map<String, String> mapDatas = new HashMap<>( );
         mapDatas.put( "T1", "theme1" );
         mapDatas.put( "T2", "theme2" );
@@ -109,7 +109,7 @@ public class MockProvider implements IBroadcastProvider
         sub2.setId( "EXAMPLE_TWO" );
         sub2.setUserId( userId );
         sub2.setActive( true );
-        sub2.setType( typeSubsciption );
+        sub2.setType( typeSubscription );
         List<String> data = new ArrayList<>( );
 
         List<Subscription> list = new ArrayList<>( );

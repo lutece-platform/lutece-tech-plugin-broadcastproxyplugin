@@ -81,18 +81,10 @@ public class HubScoreProvider implements IBroadcastProvider
     }
 
     @Override
-    public boolean subscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception
-    {
+    public boolean subscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception
+    {    	
+    	_hubScoreAPI.manageUser( userId, Constants.TYPE_NEWSLETTER, Constants.ACTION_ADD );
 
-        try
-        {
-            _hubScoreAPI.manageUser( userId, Constants.TYPE_NEWSLETTER, Constants.ACTION_ADD, false );
-        }
-        catch( Exception e )
-        {
-            // try with a new token
-            _hubScoreAPI.manageUser( userId, Constants.TYPE_NEWSLETTER, Constants.ACTION_ADD, true );
-        }
         return true;
     }
 
@@ -110,7 +102,7 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public boolean update( Subscription sub ) throws Exception
     {
-        _hubScoreAPI.updateSubscribtions( sub.getUserId( ), subToMap( sub ), sub.getType( ), false );
+        _hubScoreAPI.updateSubscribtions( sub.getUserId( ), subToMap( sub ), sub.getType( ) );
 
         return true;
     }
@@ -179,17 +171,7 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception
     {
-        String userSubscriptionsList = null;
-
-        try
-        {
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, false );
-        }
-        catch( Exception e )
-        {
-            // try with new token
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, true );
-        }
+        String userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription );
 
         return buildSubscriptionList( userSubscriptionsList, userId, typeSubscription );
     }
@@ -197,17 +179,8 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public String getUserSubscriptionsAsJson( String userId, String typeSubscription ) throws Exception
     {
-        String userSubscriptionsList = null;
-
-        try
-        {
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, false );
-        }
-        catch( Exception e )
-        {
-            // try with new token
-            userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription, true );
-        }
+        
+        String userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription );
 
         return buildJson( buildSubscriptionList( userSubscriptionsList, userId, typeSubscription ) );
     }
@@ -215,10 +188,7 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public boolean updateSubscribtions( List<Subscription> subscriptionsList ) throws Exception
     {
-
         Map<String, String> mapDatas = new HashMap<>( );
-        String feedType ;
-        String userId ;
 
         if ( subscriptionsList.isEmpty( ) ) return false;
 
@@ -227,7 +197,7 @@ public class HubScoreProvider implements IBroadcastProvider
             mapDatas.putAll( subToMap( sub ) );
         }
 
-        _hubScoreAPI.updateSubscribtions( subscriptionsList.get(0).getUserId( ), mapDatas, subscriptionsList.get(0).getType( ), false );
+        _hubScoreAPI.updateSubscribtions( subscriptionsList.get(0).getUserId( ), mapDatas, subscriptionsList.get(0).getType( ) );
 
         return true;
     }

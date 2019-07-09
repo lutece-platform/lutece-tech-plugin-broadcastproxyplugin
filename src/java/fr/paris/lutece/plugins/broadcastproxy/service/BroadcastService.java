@@ -105,24 +105,24 @@ public class BroadcastService
      * {"subscriptions":[{"name":"EXAMPLE_ONE","active":"0"},{"name":"EXAMPLE_TWO","active":"1","data":["data1","date2","data3"]}]}
      * 
      * @param userId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return a JSON String
      */
-    public String getUserSubscriptionsAsJson( String userId, String typeSubsciption ) throws Exception
+    public String getUserSubscriptionsAsJson( String userId, String typeSubscription ) throws Exception
     {
-        return _broadcastProvider.getUserSubscriptionsAsJson( userId, typeSubsciption );
+        return _broadcastProvider.getUserSubscriptionsAsJson( userId, typeSubscription );
     }
 
     /**
      * get user subscriptions returns the user subscription list as a list of Subscription beans
      * 
      * @param userId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return a JSON String
      */
-    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubsciption ) throws Exception
+    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception
     {
-        return _broadcastProvider.getUserSubscriptionsAsList( userId, typeSubsciption );
+        return _broadcastProvider.getUserSubscriptionsAsList( userId, typeSubscription );
     }
 
     /**
@@ -142,13 +142,13 @@ public class BroadcastService
      * 
      * @param userId
      * @param subscriptionId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return true if success
      * @throws Exception
      */
-    public boolean subscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception
+    public boolean subscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception
     {
-        return _broadcastProvider.subscribe( userId, subscriptionId, typeSubsciption );
+        return _broadcastProvider.subscribe( userId, subscriptionId, typeSubscription );
     }
 
     /**
@@ -156,13 +156,13 @@ public class BroadcastService
      * 
      * @param userId
      * @param subscriptionId
-     * @param typeSubsciption
+     * @param typeSubscription
      * @return true if success
      * @throws Exception
      */
-    public boolean unsubscribe( String userId, String subscriptionId, String typeSubsciption ) throws Exception
+    public boolean unsubscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception
     {
-        return _broadcastProvider.unsubscribe( userId, subscriptionId, typeSubsciption );
+        return _broadcastProvider.unsubscribe( userId, subscriptionId, typeSubscription );
     }
 
     /**
