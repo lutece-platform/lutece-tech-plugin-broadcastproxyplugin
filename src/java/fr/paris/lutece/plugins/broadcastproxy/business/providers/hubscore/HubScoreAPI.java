@@ -159,9 +159,8 @@ public class HubScoreAPI
      * @return the response message
      * @throws IOException
      */
-    public String manageUser( String eMail, String typeSubscription, String action ) throws IOException
+    public void manageUser( String eMail, String typeSubscription, String action ) throws IOException
     {
-
         ObjectMapper mapper = new ObjectMapper( );
 
         // Set URL
@@ -180,18 +179,15 @@ public class HubScoreAPI
         // Call http method
         if ( Constants.ACTION_ADD.equals( action ) )
         {
-            return callDoPost( strUrl, params, hmHeaders, typeSubscription );
+            callDoPost( strUrl, params, hmHeaders, typeSubscription );
         }
 
         if ( Constants.ACTION_DELETE.equals( action ) )
         {
             String strHubScoreUserId = getHubScoreUserId( eMail, typeSubscription );
             strUrl = strUrl + "/" + strHubScoreUserId;
-            return callDoDelete( strUrl, hmHeaders, typeSubscription );
+            callDoDelete( strUrl, hmHeaders, typeSubscription );
         }
-        
-        return null;
-
     }
 
     /**
