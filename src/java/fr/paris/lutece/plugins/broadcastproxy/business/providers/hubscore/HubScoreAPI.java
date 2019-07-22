@@ -376,13 +376,12 @@ public class HubScoreAPI
      */
     private String callDoGet( String strUrl, Map<String, String> mapHeaders, String typeSubscription ) throws IOException
     {
-
         String strToken;
         HttpResponse httpResponse;
         HubScoreHttpAccess hubscorehttpaccess = new HubScoreHttpAccess( );
 
         strToken = getToken( typeSubscription, false );
-
+        
         mapHeaders.put( MARK_HEADER_AUTHORIZATION, MARK_HEADER_BEARER + strToken );
 
         // Do Get
@@ -609,16 +608,15 @@ public class HubScoreAPI
             throw new AppException( ERROR_MSG_NO_ERROR_CODE, null );
         }
 
-        if ( nodes.has( "code" ) )
+        
+        if ( nodes.get( "code" ).asInt( ) == Integer.valueOf( ERROR_INVALID_TOKEN_CODE ) )
         {
-            if ( nodes.get( "code" ).asInt( ) == Integer.valueOf( ERROR_INVALID_TOKEN_CODE ) )
+            if ( nodes.get( "message" ).asText( ).equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
             {
-                if ( nodes.get( "message" ).asText( ).equals( ERROR_MSG_INVALID_TOKEN_MESSAGE ) )
-                {
-                    return ERROR_MSG_INVALID_TOKEN_MESSAGE;
-                }
+                return ERROR_MSG_INVALID_TOKEN_MESSAGE;
             }
         }
+        
 
         return null;
     }
