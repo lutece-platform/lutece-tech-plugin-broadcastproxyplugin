@@ -44,6 +44,7 @@ import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
 import fr.paris.lutece.portal.service.template.AppTemplateService;
 import fr.paris.lutece.portal.service.util.AppLogService;
+import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.utils.MVCMessage;
 import fr.paris.lutece.portal.web.l10n.LocaleService;
 import fr.paris.lutece.util.ErrorMessage;
@@ -61,6 +62,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 {
     // PROPERTIES
     private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.myDashboard.description";
+    private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
 
     // Markers
     private static final String MARK_SUBSCRIPTION_LIST_BY_TYPE = "subscription_list_by_type";
@@ -69,9 +71,6 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     private static final String MARK_BROADCASTPROXY = "broadcastproxy";
     private static final String MARK_LUTECE_USER = "user";
     private static final String MARK_INFOS = "infos";
-
-    // messages
-    private static final String MSG_ERROR_GET_USER_SUBSCRIPTIONS = "Error while trying to get user Subscriptions";
 
     // instance variables
     ReferenceList _subscriptionTypes = null;
@@ -82,7 +81,8 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     // constants
     private static final String DS_KEY_FEEDTYPES = "broadcastproxy.site_property.mydashboard.feedtypes";
     private static final String MYDASHBOARD_BROADCASTPROXY_ID = "broadcastproxy.myDashboard";
-
+    private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
+    
     // Templates
     private static final String TEMPLATE_DASHBOARD = "skin/plugins/mydashboard/modules/broadcastproxy/broadcastproxy_mydashboard.html";
 
@@ -111,7 +111,16 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
             initSubscriptionFeeds( );
 
             Map<String, List<Subscription>> listSubscriptionsByType = new HashMap<>( );
-            String userId = _luteceUser.getEmail( );
+            String userMail = _luteceUser.getEmail( );
+            if ( StringUtils.isBlank( userMail ) )
+            {
+                String mailUserInfoKey = AppPropertiesService.getProperty( KEY_USER_INFO_MAIL );
+                if ( !StringUtils.isBlank( mailUserInfoKey ) ) 
+                {
+                    userMail = _luteceUser.getUserInfo( mailUserInfoKey );
+                }
+            }
+            
 
             for ( String feedType : _feedTypes )
             {
@@ -120,14 +129,14 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 
                 try
                 {
-                    List<Subscription> list = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userId, feedType );
+                    List<Subscription> list = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userMail, feedType );
                     listSubscriptionsByType.put( feedType, list );
 
                     model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
                 }
                 catch( Exception e )
                 {
-                    addInfo( MSG_ERROR_GET_USER_SUBSCRIPTIONS );
+                    addInfo( I18nService.getLocalizedString( PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS, LocaleService.getDefault( ) ) );
                     AppLogService.error( e.getMessage( ) );
                 }
             }

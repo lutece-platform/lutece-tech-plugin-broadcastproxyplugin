@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
 import fr.paris.lutece.portal.service.util.AppLogService;
+import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.xpage.MVCApplication;
 import fr.paris.lutece.portal.util.mvc.xpage.annotations.Controller;
@@ -52,14 +53,12 @@ import fr.paris.lutece.util.json.JsonResponse;
 import fr.paris.lutece.util.json.JsonUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * MyLuteceParisConnectXPage
@@ -73,6 +72,8 @@ public class BroadcastproxyXPage extends MVCApplication
      */
     public static final String PAGE_BROADCAST_MYDASHBOARD = "broadcastproxyMyDashboard";
     private static final long serialVersionUID = -4316691400124512414L;
+    
+    private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
 
     private static final String ACTION_UPDATE_USER_SUBSCRIPTIONS = "updateUserSubscriptions";
 
@@ -92,7 +93,16 @@ public class BroadcastproxyXPage extends MVCApplication
             user = SecurityService.getInstance( ).getRegisteredUser( request );
             if ( user != null )
             {
-                return user.getEmail( );
+                String userMail = user.getEmail( );
+                if ( StringUtils.isBlank( userMail ) )
+                {
+                    String mailUserInfoKey = AppPropertiesService.getProperty( KEY_USER_INFO_MAIL );
+                    if ( !StringUtils.isBlank( mailUserInfoKey ) ) 
+                    {
+                        userMail = user.getUserInfo( mailUserInfoKey );
+                    }
+                }
+                return userMail;
             }
             else
             {
