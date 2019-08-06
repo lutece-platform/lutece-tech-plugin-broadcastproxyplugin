@@ -72,7 +72,7 @@ public class BroadcastproxyXPage extends MVCApplication
      */
     public static final String PAGE_BROADCAST_MYDASHBOARD = "broadcastproxyMyDashboard";
     private static final long serialVersionUID = -4316691400124512414L;
-    
+
     private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
 
     private static final String ACTION_UPDATE_USER_SUBSCRIPTIONS = "updateUserSubscriptions";
@@ -97,7 +97,7 @@ public class BroadcastproxyXPage extends MVCApplication
                 if ( StringUtils.isBlank( userMail ) )
                 {
                     String mailUserInfoKey = AppPropertiesService.getProperty( KEY_USER_INFO_MAIL );
-                    if ( !StringUtils.isBlank( mailUserInfoKey ) ) 
+                    if ( !StringUtils.isBlank( mailUserInfoKey ) )
                     {
                         userMail = user.getUserInfo( mailUserInfoKey );
                     }

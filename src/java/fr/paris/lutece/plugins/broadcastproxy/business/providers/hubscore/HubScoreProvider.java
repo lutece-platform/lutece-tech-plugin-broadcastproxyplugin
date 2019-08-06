@@ -82,8 +82,8 @@ public class HubScoreProvider implements IBroadcastProvider
 
     @Override
     public boolean subscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception
-    {    	
-    	_hubScoreAPI.manageUser( userId, Constants.TYPE_NEWSLETTER, Constants.ACTION_ADD );
+    {
+        _hubScoreAPI.manageUser( userId, Constants.TYPE_NEWSLETTER, Constants.ACTION_ADD );
 
         return true;
     }
@@ -179,7 +179,7 @@ public class HubScoreProvider implements IBroadcastProvider
     @Override
     public String getUserSubscriptionsAsJson( String userId, String typeSubscription ) throws Exception
     {
-        
+
         String userSubscriptionsList = _hubScoreAPI.getUserSubscriptions( userId, typeSubscription );
 
         return buildJson( buildSubscriptionList( userSubscriptionsList, userId, typeSubscription ) );
@@ -190,14 +190,15 @@ public class HubScoreProvider implements IBroadcastProvider
     {
         Map<String, String> mapDatas = new HashMap<>( );
 
-        if ( subscriptionsList.isEmpty( ) ) return false;
+        if ( subscriptionsList.isEmpty( ) )
+            return false;
 
         for ( Subscription sub : subscriptionsList )
         {
             mapDatas.putAll( subToMap( sub ) );
         }
 
-        _hubScoreAPI.updateSubscribtions( subscriptionsList.get(0).getUserId( ), mapDatas, subscriptionsList.get(0).getType( ) );
+        _hubScoreAPI.updateSubscribtions( subscriptionsList.get( 0 ).getUserId( ), mapDatas, subscriptionsList.get( 0 ).getType( ) );
 
         return true;
     }

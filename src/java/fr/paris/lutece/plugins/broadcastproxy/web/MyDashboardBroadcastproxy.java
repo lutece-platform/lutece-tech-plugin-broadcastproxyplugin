@@ -82,7 +82,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     private static final String DS_KEY_FEEDTYPES = "broadcastproxy.site_property.mydashboard.feedtypes";
     private static final String MYDASHBOARD_BROADCASTPROXY_ID = "broadcastproxy.myDashboard";
     private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
-    
+
     // Templates
     private static final String TEMPLATE_DASHBOARD = "skin/plugins/mydashboard/modules/broadcastproxy/broadcastproxy_mydashboard.html";
 
@@ -115,12 +115,11 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
             if ( StringUtils.isBlank( userMail ) )
             {
                 String mailUserInfoKey = AppPropertiesService.getProperty( KEY_USER_INFO_MAIL );
-                if ( !StringUtils.isBlank( mailUserInfoKey ) ) 
+                if ( !StringUtils.isBlank( mailUserInfoKey ) )
                 {
                     userMail = _luteceUser.getUserInfo( mailUserInfoKey );
                 }
             }
-            
 
             for ( String feedType : _feedTypes )
             {
