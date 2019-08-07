@@ -512,8 +512,8 @@ public class HubScoreAPI
 
         // If error
         if ( httpResponse != null 
-                && httpResponse.getStatusLine( ).getStatusCode( ) < 200 
-                && httpResponse.getStatusLine( ).getStatusCode( ) >= 300 )
+                && ( httpResponse.getStatusLine( ).getStatusCode( ) < 200 
+                || httpResponse.getStatusLine( ).getStatusCode( ) >= 300 ) )
         {
             if ( isTokenInvalid( strResponse ) )
             {
@@ -522,8 +522,8 @@ public class HubScoreAPI
                 httpResponse = hubscorehttpaccess.doPatch( strUrl, listParams, mapHeaders );
 
                 if ( httpResponse != null 
-                        && httpResponse.getStatusLine( ).getStatusCode( ) < 200 
-                        && httpResponse.getStatusLine( ).getStatusCode( ) >= 300 )
+                        && ( httpResponse.getStatusLine( ).getStatusCode( ) < 200 
+                        || httpResponse.getStatusLine( ).getStatusCode( ) >= 300 ) )
                 {
                     AppLogService.error( "Returned Hubscore error : " + strResponse );
                 }
