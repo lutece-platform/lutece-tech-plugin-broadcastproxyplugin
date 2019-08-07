@@ -132,7 +132,7 @@ public class BroadcastproxyXPage extends MVCApplication
 
         String mailUser = getMailUserAuthenticated( request );
 
-        if ( mailUser == null )
+        if ( StringUtils.isBlank(mailUser) )
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
 
         String strJson;
@@ -154,7 +154,7 @@ public class BroadcastproxyXPage extends MVCApplication
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "An error occured while receiving the response" ) ) );
         }
 
-        if ( updateSubscriptions( strJson ) != true )
+        if ( updateSubscriptions( strJson, mailUser ) != true )
         {
             responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "An error occured while receiving the response" ) ) );
         }
@@ -168,7 +168,7 @@ public class BroadcastproxyXPage extends MVCApplication
      * @param jsonResponse
      * @return true if successful
      */
-    private boolean updateSubscriptions( String jsonResponse )
+    private boolean updateSubscriptions( String jsonResponse, String userId )
     {
 
         ObjectMapper mapper = new ObjectMapper( );
@@ -177,7 +177,6 @@ public class BroadcastproxyXPage extends MVCApplication
         {
             JsonNode jsonNode = mapper.readTree( jsonResponse );
 
-            String userId = jsonNode.get( "userId" ).asText( );
             ArrayNode arrayFeedTypesNode = (ArrayNode) jsonNode.get( "feedTypes" );
 
             if ( arrayFeedTypesNode != null && arrayFeedTypesNode.size( ) > 0 )
