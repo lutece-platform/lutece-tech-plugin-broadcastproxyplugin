@@ -185,13 +185,26 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
                 }
 
                 List<Feed> listFeeds = BroadcastService.getInstance( ).getFeeds( );
+
+                AppLogService.debug( "Feedz by type size : " + _subscriptionFeedsByType.get( "ALERT" ).size( ) ) ;
                 for ( Feed feed : listFeeds )
                 {
                     if ( _subscriptionFeedsByType.get( feed.getType( ) ) != null )
                     {
-                        _subscriptionFeedsByType.get( feed.getType( ) ).add( feed );
+                        AppLogService.debug ("----------- test feed : " + feed.getType( ) + "/" + feed.getId( ) );
+                        boolean feedAlreadyAdded = false;
+                        for ( Feed feedItem : _subscriptionFeedsByType.get( feed.getType( ) ) ) {
+                            if ( feedItem.getId( ).equals( feed.getId( ) ) && feedItem.getType( ).equals( feed.getType( ) ) )
+                            {
+                                feedAlreadyAdded = true;
+                                AppLogService.debug ( "feedAlreadyAdded" );
+                            }
+                        }
+                        if ( !feedAlreadyAdded ) _subscriptionFeedsByType.get( feed.getType( ) ).add( feed );
                     }
                 }
+
+                AppLogService.debug( "Feedz by type size : " + _subscriptionFeedsByType.get( "ALERT" ).size( ) ) ;
             }
         }
     }
