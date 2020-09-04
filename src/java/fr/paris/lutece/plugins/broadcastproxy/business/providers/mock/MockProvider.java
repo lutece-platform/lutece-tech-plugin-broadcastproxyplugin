@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,12 @@
 package fr.paris.lutece.plugins.broadcastproxy.business.providers.mock;
 
 import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
+import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
+import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
-import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,12 +69,11 @@ public class MockProvider implements IBroadcastProvider
     }
 
     @Override
-    public String getUserSubscriptionsAsJson( String userId, String typeSubscription )
+    public String getUserSubscriptionsAsJson( String userId )
     {
         return DEFAULT_USER_SUBSCRIPTIONS_JSON;
     }
 
-    @Override
     public boolean updateSubscribtions( List<Subscription> subscriptionsList )
     {
         return true;
@@ -92,31 +92,23 @@ public class MockProvider implements IBroadcastProvider
     }
 
     @Override
-    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception
+    public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsAsList( String userId ) throws Exception
     {
+        Map<String, Map<String, List<Subscription>>> map = new HashMap<String, Map<String, List<Subscription>>>( );
 
-        Subscription sub1 = new Subscription( );
-        sub1.setId( "EXAMPLE_ONE" );
-        sub1.setUserId( userId );
-        sub1.setActive( false );
-        sub1.setType( typeSubscription );
-        Map<String, String> mapDatas = new HashMap<>( );
-        mapDatas.put( "T1", "theme1" );
-        mapDatas.put( "T2", "theme2" );
-        sub1.setData( mapDatas );
-
-        Subscription sub2 = new Subscription( );
-        sub2.setId( "EXAMPLE_TWO" );
-        sub2.setUserId( userId );
-        sub2.setActive( true );
-        sub2.setType( typeSubscription );
-        List<String> data = new ArrayList<>( );
-
-        List<Subscription> list = new ArrayList<>( );
-        list.add( sub1 );
-        list.add( sub2 );
-
-        return list;
+        /*
+         * Subscription sub1 = new Subscription( ); sub1.setId( "EXAMPLE_ONE" ); sub1.setUserId( userId ); sub1.setActive( false ); sub1.setType(
+         * typeSubscription ); Map<String, String> mapDatas = new HashMap<>( ); mapDatas.put( "T1", "theme1" ); mapDatas.put( "T2", "theme2" ); sub1.setData(
+         * mapDatas );
+         * 
+         * Subscription sub2 = new Subscription( ); sub2.setId( "EXAMPLE_TWO" ); sub2.setUserId( userId ); sub2.setActive( true ); sub2.setType(
+         * typeSubscription ); List<String> data = new ArrayList<>( );
+         * 
+         * List<Subscription> list = new ArrayList<>( ); list.add( sub1 ); list.add( sub2 );
+         * 
+         * //map.put(null, list);
+         */
+        return map;
 
     }
 
@@ -126,7 +118,6 @@ public class MockProvider implements IBroadcastProvider
         return true;
     }
 
-    @Override
     public List<Feed> getFeeds( )
     {
         List<Feed> list = new ArrayList<>( );
@@ -154,6 +145,20 @@ public class MockProvider implements IBroadcastProvider
         list.add( testFeed2 );
 
         return list;
+    }
+
+    @Override
+    public boolean updateSubscribtions( String userId, String jsonSubscriptions ) throws Exception
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean updateSubscribtions( String userId, List<Subscription> subscriptionsList ) throws Exception
+    {
+        // TODO Auto-generated method stub
+        return false;
     }
 
 }

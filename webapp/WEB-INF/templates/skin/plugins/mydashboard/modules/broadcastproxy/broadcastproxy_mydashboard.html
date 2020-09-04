@@ -1,187 +1,242 @@
 <#macro getLabelFromList code list >
     <#list list as refItem>
         <#if refItem.code?string == code?string >
-${refItem.name}
+			${refItem.name}
         </#if>
     </#list>
 </#macro>
 
-    <div class="box-header">
-            <h3 class="box-title">#i18n{broadcastproxy.myDashboard.title}</h3>
-            <@messages errors=errors />
-            <@messages infos=infos />
-            
-            Subscription list for ${user.email!''} (${broadcastproxy!'?'}) : <br>
-    </div>
-    <div class="box-body">
+<#macro switchCheckBox name checked label="" size="large" id=name class="" subtype="" groupname="">
+	<div class="custom-control custom-switch">
+	  <input type="checkbox" id="${name}" name="${name}" subtype="${subtype}" groupname="${groupname}" <#if checked="checked"> checked=checked </#if>  
+		class="custom-control-input subscriptionSwitch ${class}"  data-size="${size}" data-on="success" data-off="warning" />   
+             <label class=" custom-control-label" for="${name}"> 
+				${label}
+	     	</label>
+	</div>
+</#macro>
 
-    <@row>
-    <@columns>
-        
-        <#list subscription_feeds_by_type?keys as feeds_type >
-        <div class="container feedsTypeDiv" id="div_feeds_type_${feeds_type}" >
-            
-            <h3 class="heading-title">#i18n{broadcastproxy.dashboard.listUserSubscriptionsTitle}
-                (<@getLabelFromList feeds_type subscription_types />)</h3>
-            
-            
-                <fieldset>
-                <@formGroup>
-            
-                <ul>
-                <#list subscription_feeds_by_type[feeds_type] as feed >
-                    <#assign activeSub = false >
 
-                    <#if subscription_list_by_type[feeds_type]?hasContent >
-                    <#list subscription_list_by_type[feeds_type] as sub>
-                        <#if sub.id = feed.id && sub.type = feed.type  >
-                            <#assign userSub = sub >
-                            <#assign activeSub = userSub.isActive( ) >
-                            <#if sub.data?hasContent>
-                                <#assign userSubData = sub.data?keys >
-                            </#if>
-                        </#if>
-                    </#list>
-                    </#if>
-                            
-                    <li>
-                        <div class="feedDiv">
-                        <input type="checkbox" id="SUB_${feed.type}_${feed.id}" <#if activeSub >checked="checked"</#if> class="subscriptionCheckBox" />   
-                            ${feed.name}
+<!-- ------------------------------------------------------ -->
+<style >
+a.updateUserSubscriptions {
+	color:white  !important;
+}
+.modalLoading {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 ) 
+                url('images/loading.gif') 
+                50% 50% 
+                no-repeat;
+}
 
-                        <#if feed.data?hasContent && 0 < feed.data?size >
-                            <br>
-                            
-                            <#assign refThemeList = feed.data?keys />
+body.loading .modalLoading {
+    overflow: hidden;   
+}
 
-                            <ul>
-                            <#list refThemeList as theme >
-                                <li> 
-                                    <#assign check="">
-                                    <#if userSubData?hasContent>
-                                    <#list userSubData as activeTheme>
-                                        <#if activeTheme == theme >
-                                            <#assign check="checked=checked">
-                                        </#if>
-                                    </#list>
-                                    </#if>
+body.loading .modalLoading {
+    display: block;
+}
 
-                                    <input type="checkbox" id="DATA_${feed.type}_${feed.id}_${theme}" ${check} class="subscriptionDataCheckBox" /> 
-                                    ${feed.data[theme]}
-                                </li>
-                            </#list>
-                            </ul>
+.hide {
+display:none;
+}
 
-                        </#if>
-                        </div>
-                    </li>
-                </#list>    
-                </ul>
-                        
-                </@formGroup>                
-                </fieldset>
+.custom-control-input:checked ~ .custom-control-label::before {
+background-color: #28a745;
+border-color: #28a745;
+}
+</style>
 
-        </div>
-        </#list>
-        
-        <div class="container">
-            
-        <@formGroup>
-                <#if subscription_feeds_by_type?hasContent >
-                <a class="btn btn-primary btn-small" id='updateUserSubscriptions' title='#i18n{portal.util.labelModify}'  >
-                    #i18n{portal.util.labelModify}
-                </a>
-                </#if>
-        </@formGroup>  
-        </div>
-  </@columns>
-</@row>
+<section class="subscriptions mt-3">
+	<div class="container px-5 py-3 subscriptionGroup">
+    	<@messages errors=errors />
+		<@messages infos=infos />	
+		
+		<#if user_subscriptions?hasContent >
+			<h2 class="main-color">Mes abonnements</h2>
+			<br>	
 
-</div>
+           	<!---------------- NEWSLETTERS -------------------->
+           	<#assign subscription_type = 'NEWSLETTER'>				
+			<#if user_subscriptions[subscription_type]?hasContent >
+				<div class="container subscriptionsTypeDiv" id="div_subscription_type${subscription_type}" >
+					<#assign user_subscriptions_by_type = user_subscriptions[subscription_type]>	
+					<h2 class="main-color">Mes newsletters</h2>	   
+					<div class="row"> 
+						<!---------------- Subscriptions without Groups (Newsletters) -------------------->
+						<#if user_subscriptions_by_type["NONE"]?hasContent >
+							<#assign group_name = 'NONE'>
+							<#assign user_subscriptions_by_group = user_subscriptions_by_type[group_name]>							
+							<#list user_subscriptions_by_group as sub>
+								<div class="col-md-6">
+									<div class="SubscriptionDiv">
+										<#assign checkBoxName=sub.id >
+										<#assign checked = "" >
+										<#if sub.active = true ><#assign checked = "checked" ></#if>
+										<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.name}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />
+										<p class="py-2 font-m-light">
+											${descriptions[sub.id]!''}
+										</p>	
+									</div>
+          						</div>
+							</#list>
+						</#if>				
+						<!---------------- Subscriptions with Groups (Newsletters) -------------------->
+						<#list user_subscriptions_by_type?keys as group_name >
+							<#if user_subscriptions_by_type[group_name]?hasContent && group_name != 'NONE'>
+    							<#assign user_subscriptions_by_group = user_subscriptions_by_type[group_name]>	
+								<div class="container ml-1">
+									<div class=row>
+										<div class="col-md-6">
+											<strong>${group_name} </strong>	
+											<p class="py-2 font-m-light">
+												${descriptions[group_name]!''}
+											</p>										
+											<#list user_subscriptions_by_group as sub>												
+													<div class="SubscriptionDiv">
+														<#assign checkBoxName=sub.id >
+														<#assign checked = "" >
+														<#if sub.active = true ><#assign checked = "checked" ></#if>
+														<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.id}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />					
+														
+													</div>
+											</#list>
+										</div>	
+									</div>
+								</div>					
+   							</#if>
+						</#list>
+   					</div>	
+				</div>				
+			</#if>
+			
+			<!---------------- ALERTS -------------------->
+			<br>
+           	<#assign subscription_type = 'ALERT'>	
+			<#if user_subscriptions[subscription_type]?hasContent >		
+				<div class="container subscriptionsTypeDiv" id="div_subscription_type${subscription_type}" >
+					<#assign user_subscriptions_by_type = user_subscriptions[subscription_type]>	
+    				<h2 class="main-color">Mes alertes</h2>	      				
+					<p class="py-2 font-m-light">
+						${descriptions["Alertes"]!''}
+					</p>							
+					<div class="row"> 			
+						<!---------------- Subscriptions without Groups (Alerts) -------------------->
+						<#if user_subscriptions_by_type["Alertes"]?hasContent >
+							<#assign group_name = 'Alertes'>
+							<#assign user_subscriptions_by_group = user_subscriptions_by_type[group_name]>							
+							<#list user_subscriptions_by_group as sub>
+								<div class="col-md-6">
+									<div class="SubscriptionDiv">
+										<#assign checkBoxName=sub.id >
+										<#assign checked = "" >
+										<#if sub.active = true ><#assign checked = "checked" ></#if>
+										<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.name}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />
+										
+									</div>
+          						</div>
+							</#list>
+						</#if>
+					</div>
+				</div>
+			</#if>
+       	</#if>
+	</div>
+
+</section>
+
+<div class="modalLoading"><!-- modal loading splash screen while waiting ajax calls --> </div>
 
 <!-- update subscriptions -->
 <script  type="text/javascript" >
     
 var urlUpdateSubscriptions  = "jsp/site/Portal.jsp?page=broadcastproxyMyDashboard&action=updateUserSubscriptions";
 
+//Ajax call
 function push ( json ) {
       $.ajax({
-            type: "POST",
-            url: urlUpdateSubscriptions,
-            dataType: "json",
-            contentType: "application/json",
-            success: function(data){
-                if (data.status == "OK") {
-                    alert( "Abonnement(s) mis à jour") ;
-                } else {
-                    alert( "Un problème est survenu lors de la mise à jour des abonnements : " + data.result);
-                }
-            },
-            failure: function(errMsg) {
-                alert( "Un problème est survenu lors de la mise à jour des abonnements : " + errMsg.result);
-            },
-            data: JSON.stringify(json)
+    	  type: "POST",
+          url: urlUpdateSubscriptions,
+          dataType: "json",
+          contentType: "application/json",
+	  beforeSend: function() { 
+          	// start loading screen
+		$("body").addClass("loading"); 
+	  },
+          complete:function(){  
+		// hide loading screen
+		$("body").removeClass("loading");
+	  },
+          success: function(data, e, f){      
+              if (data.status !== "OK")
+               {
+                  alert( "Un problème est survenu lors de la mise à jour des abonnements : " + data.result);
+              }
+          },
+          failure: function(errMsg) {
+              alert( "Un problème est survenu lors de la mise à jour des abonnements : " + errMsg.result);
+          },            
+          error:  function (jqXHR, timeout, message) {
+              var contentType = jqXHR.getResponseHeader("Content-Type");
+              if (jqXHR.status === 200 && contentType.toLowerCase().indexOf("text/html") >= 0) {
+                  // assume that our login has expired - reload our current page
+                  window.location.reload(true);
+              }
+          },
+	    
+          data: JSON.stringify(json)
       });
 }
-        
-$( function( ) {
-    $('#updateUserSubscriptions').on("click",function( ){
-        
-        jsonFeedTypesList = [] ;
-            
-        $(".feedsTypeDiv").each( function( ){
-            feedsType = $(this).attr("id").substring(15) ;
-            jsonSubList = [];
-            
-            $(this).find(".feedDiv").each( function( ){
-                subCheckBox = $(this).find( ".subscriptionCheckBox").first( ) ;
-                jsonSubDataList = [];
-                feedId = subCheckBox.attr("id").substring( 5 + feedsType.length );    
-                    
-                $(this).find(".subscriptionDataCheckBox").each( function( ){
-                    dataId = $(this).attr("id").substring( 7 + feedsType.length + feedId.length );    
-                    data = {
-                        "id" : dataId,
-                        "active" : ($(this).is(':checked')?"1":"0")
-                    }
-                    jsonSubDataList.push( data );
+
+$('.subscriptionSwitch').on("change", function ( ) {
+
+	jsonSubList = [];
+	jsonSubListByGroup = [];
+	jsonUserSubscriptionsList = [];
+	
+	var jsonSub = {
+    	"id": $( this ).attr( "id" ),
+    	"active": false
+    }
+	
+	if( $(this).is(':checked') ){
+		jsonSub.active = true;
+	}
+	
+	// Add subscription to list
+	jsonSubList.push(jsonSub);
+	 
+	// Build json user subscriptions by group
+    jsonUserSubscriptionByGroup = {
+   		"groupName": $( this ).attr( "groupname" ),
+    	"subscriptionsList": jsonSubList
+    }
+
+    jsonSubListByGroup.push(jsonUserSubscriptionByGroup);
     
-                }).promise().done( function() {
-                    jsonSub = {
-                        "id" : feedId,
-                        "type" : feedsType,
-                        "active" : (subCheckBox.is(':checked')?"1":"0"),
-                        "data" : jsonSubDataList
-                    }
+	// Build json user subscriptions by type
+    jsonUserSubscriptionByType = {
+		"typeName": $( this ).attr( "subtype" ),
+    	"subscriptionsByGroup": jsonSubListByGroup
+    }
 
-                    jsonSubList.push( jsonSub );
-                });
-                
-            }).promise().done( function() {
-            
-                jsonFeedsType = {
-                    "id" : feedsType,
-                    "subscriptions" : jsonSubList
-                }
-
-                jsonFeedTypesList.push( jsonFeedsType );
-            });
-        }).promise().done( function( ) {    
-
-            json =  {
-                "userId" : "${user.email!''}",
-                "feedTypes" : jsonFeedTypesList
-            }
-            
-            // asynchronous call to the server
-            console.log( json );
-            push(json);
-        });
-    });
- 
-
-      
+	// Add subscription to list
+	jsonUserSubscriptionsList.push(jsonUserSubscriptionByType);
+	 
+	// Build json to return
+	jsonUserSubscriptions = {
+		"userSubscriptions": jsonUserSubscriptionsList
+    }
+	
+	push( jsonUserSubscriptions );
 });
-    
-    
+
+
 </script>

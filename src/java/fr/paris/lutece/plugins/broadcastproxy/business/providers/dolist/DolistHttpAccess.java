@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,44 +31,34 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.broadcastproxy.business.providers.hubscore;
+package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 
 import fr.paris.lutece.portal.service.util.AppException;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
-/**
- *
- * @author Oughdi
- */
-public class HubScoreHttpAccess
+public class DolistHttpAccess
 {
-
     // get proxy from HttpAccess properties
     private static final String PROXY_ADR = AppPropertiesService.getProperty( "broadcastproxy.proxyHost" );
     private static final int PROXY_PORT = AppPropertiesService.getPropertyInt( "broadcastproxy.proxyPort", 3128 );
 
     public HttpResponse doGet( String strUrl, Map<String, String> headers )
     {
-
         CloseableHttpClient client = HttpClientBuilder.create( ).build( );
         HttpGet method = new HttpGet( strUrl );
         HttpResponse httpResponse = null;
@@ -108,16 +98,15 @@ public class HubScoreHttpAccess
         return httpResponse;
     }
 
-    public HttpResponse doPost( String strUrl, List<BasicNameValuePair> params, Map<String, String> headers )
+    public HttpResponse doPost( String strUrl, String jsonParams, Map<String, String> headers )
     {
-
         CloseableHttpClient client = HttpClientBuilder.create( ).build( );
         HttpResponse httpResponse = null;
         HttpPost method = new HttpPost( strUrl );
 
         try
         {
-            // Add headers
+            // Add headershttpPost
             if ( headers != null )
             {
                 for ( String headerType : headers.keySet( ) )
@@ -126,15 +115,8 @@ public class HubScoreHttpAccess
                 }
             }
 
-            // Add parameters
-            List<NameValuePair> listDatas = new ArrayList<>( );
-            for ( BasicNameValuePair param : params )
-            {
-                listDatas.add( param );
-            }
-
-            method.setHeader( "Content-Type", "application/x-www-form-urlencoded" );
-            method.setEntity( new UrlEncodedFormEntity( listDatas ) );
+            StringEntity entity = new StringEntity( jsonParams );
+            method.setEntity( entity );
 
             // add proxy
             HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
@@ -158,15 +140,15 @@ public class HubScoreHttpAccess
         return httpResponse;
     }
 
-    public HttpResponse doPatch( String strUrl, List<BasicNameValuePair> params, Map<String, String> headers )
+    public HttpResponse doPut( String strUrl, String jsonParams, Map<String, String> headers )
     {
-
         CloseableHttpClient client = HttpClientBuilder.create( ).build( );
         HttpResponse httpResponse = null;
-        HttpPatch method = new HttpPatch( strUrl );
+        HttpPut method = new HttpPut( strUrl );
 
         try
         {
+            // Add headershttpPut
             if ( headers != null )
             {
                 for ( String headerType : headers.keySet( ) )
@@ -175,15 +157,8 @@ public class HubScoreHttpAccess
                 }
             }
 
-            // Add parameters
-            List<NameValuePair> listDatas = new ArrayList<>( );
-            for ( BasicNameValuePair param : params )
-            {
-                listDatas.add( param );
-            }
-
-            method.setHeader( "Content-Type", "application/x-www-form-urlencoded" );
-            method.setEntity( new UrlEncodedFormEntity( listDatas ) );
+            StringEntity entity = new StringEntity( jsonParams );
+            method.setEntity( entity );
 
             // add proxy
             HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
@@ -194,7 +169,7 @@ public class HubScoreHttpAccess
         }
         catch( IOException e )
         {
-            String strError = "HttpPatch - Error connecting to '" + strUrl + "' : ";
+            String strError = "HttpPut - Error connecting to '" + strUrl + "' : ";
             AppLogService.error( strError + e.getMessage( ), e );
             throw new AppException( "strError", e );
         }
@@ -209,7 +184,6 @@ public class HubScoreHttpAccess
 
     public HttpResponse doDelete( String strUrl, Map<String, String> headers )
     {
-
         CloseableHttpClient client = HttpClientBuilder.create( ).build( );
         HttpResponse httpResponse = null;
         HttpDelete method = new HttpDelete( strUrl );
@@ -236,7 +210,7 @@ public class HubScoreHttpAccess
         }
         catch( IOException e )
         {
-            String strError = "HttpPost - Error connecting to '" + strUrl + "' : ";
+            String strError = "HttpDelete - Error connecting to '" + strUrl + "' : ";
             AppLogService.error( strError + e.getMessage( ), e );
             throw new AppException( "strError", e );
         }
@@ -248,5 +222,4 @@ public class HubScoreHttpAccess
 
         return httpResponse;
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,11 +49,13 @@ public class Subscription
 {
 
     private String _id;
+    private String _name;
     private String _userId;
     private String _userName;
     private String _type;
     private boolean _isActive;
     private Map<String, String> _data;
+    private String _description;
 
     /**
      * get id
@@ -73,6 +75,26 @@ public class Subscription
     public void setId( String strId )
     {
         this._id = strId;
+    }
+
+    /**
+     * get subscription name
+     * 
+     * @return the subscription name
+     */
+    public String getName( )
+    {
+        return _name;
+    }
+
+    /**
+     * set subscription name
+     * 
+     * @param strName
+     */
+    public void setName( String strName )
+    {
+        this._name = strName;
     }
 
     /**
@@ -187,4 +209,25 @@ public class Subscription
             _data = new HashMap<>( );
         this._data.put( strName, strValue );
     }
+
+    /**
+     * get subscription's description
+     * 
+     * @return description
+     */
+    public String getDescription( )
+    {
+        return _description;
+    }
+
+    /**
+     * set subscription's description
+     * 
+     * @param description
+     */
+    public void setDescription( String _description )
+    {
+        this._description = _description;
+    }
+
 }

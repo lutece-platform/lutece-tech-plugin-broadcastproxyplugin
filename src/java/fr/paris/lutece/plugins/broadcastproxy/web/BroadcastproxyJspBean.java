@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,11 +119,13 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
 
             try
             {
-                List<Subscription> list = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userId,
-                        _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
+                // List<Subscription> list = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userId,
+                // _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
+
+                List<Subscription> list = null;
                 model.put( MARK_SUBSCRIPTION_LIST, list );
 
-                String json = BroadcastService.getInstance( ).getUserSubscriptionsAsJson( userId, _subscriptionTypes.get( subscriptionTypeId ).getName( ) );
+                String json = BroadcastService.getInstance( ).getUserSubscriptionsAsJson( userId );
                 model.put( MARK_SUBSCRIPTION_JSON, json );
 
                 model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
@@ -232,7 +234,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             // update user subscriptions
             try
             {
-                boolean result = BroadcastService.getInstance( ).updateSubscribtions( subscriptionsList );
+                boolean result = BroadcastService.getInstance( ).updateSubscribtions( userId, subscriptionsList );
 
                 if ( result )
                 {

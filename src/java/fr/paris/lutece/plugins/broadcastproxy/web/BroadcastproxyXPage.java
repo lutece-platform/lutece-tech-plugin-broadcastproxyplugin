@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,6 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import javax.servlet.http.HttpServletRequest;
 
@@ -53,11 +49,6 @@ import fr.paris.lutece.util.json.JsonResponse;
 import fr.paris.lutece.util.json.JsonUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -118,9 +109,9 @@ public class BroadcastproxyXPage extends MVCApplication
     /**
      * Do update user subscriptions using the AJAX mode
      * 
-     * json data should be like : { "userId": "xxxx.yyyyy@gmail.com", "feedTypes": [ {"id": "ALERT", "subscriptions": [ {"id": "Paris", "type": "ALERT",
-     * "active": "0", "data": [] }, {"id": "Alerte", "type": "ALERT", "active": "1", "data": [ {"id": "bmo", "active": "1" }, {"id": "CMA", "active": "0" } ] }
-     * ] } ] }
+     * json data should be like : { "userSubscriptions": {"typeName": "ALERT", "groupName": "Alertes", "subscriptionsList": [ {"id": "", "active": true} ] } }
+     * 
+     * IF there is not "groupName" (exemple for newsletter), do ["groupName": "NONE"]
      * 
      * @param request
      *            The request
@@ -132,14 +123,12 @@ public class BroadcastproxyXPage extends MVCApplication
 
         String mailUser = getMailUserAuthenticated( request );
 
-        if ( StringUtils.isBlank(mailUser) )
+        if ( StringUtils.isBlank( mailUser ) )
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
 
         String strJson;
         try
         {
-            // strJson = request.getReader().lines().collect(Collectors.joining());
-
             StringBuilder sb = new StringBuilder( );
             String line = null;
 
@@ -170,69 +159,10 @@ public class BroadcastproxyXPage extends MVCApplication
      */
     private boolean updateSubscriptions( String jsonResponse, String userId )
     {
-
-        ObjectMapper mapper = new ObjectMapper( );
-
         try
         {
-            JsonNode jsonNode = mapper.readTree( jsonResponse );
-
-            ArrayNode arrayFeedTypesNode = (ArrayNode) jsonNode.get( "feedTypes" );
-
-            if ( arrayFeedTypesNode != null && arrayFeedTypesNode.size( ) > 0 )
-            {
-                Iterator<JsonNode> feedTypeIterator = arrayFeedTypesNode.elements( );
-
-                while ( feedTypeIterator.hasNext( ) )
-                {
-                    JsonNode feedNode = feedTypeIterator.next( );
-                    String feedTypeId = feedNode.get( "id" ).asText( );
-
-                    List<Subscription> subscriptionList = new ArrayList<>( );
-
-                    ArrayNode arraySubscriptionsNode = (ArrayNode) feedNode.get( "subscriptions" );
-
-                    if ( arraySubscriptionsNode != null && arraySubscriptionsNode.size( ) > 0 )
-                    {
-                        Iterator<JsonNode> subscriptionIterator = arraySubscriptionsNode.elements( );
-
-                        while ( subscriptionIterator.hasNext( ) )
-                        {
-                            JsonNode subNode = subscriptionIterator.next( );
-                            String subId = subNode.get( "id" ).asText( );
-                            String active = subNode.get( "active" ).asText( );
-                            String type = subNode.get( "type" ).asText( );
-                            ArrayNode arrayDataNode = (ArrayNode) subNode.get( "data" );
-
-                            Subscription sub = new Subscription( );
-                            sub.setId( subId );
-                            sub.setUserId( userId );
-                            sub.setType( feedTypeId );
-                            sub.setActive( active.equals( "1" ) );
-
-                            if ( arrayDataNode != null && arrayDataNode.size( ) > 0 )
-                            {
-                                Map<String, String> mapData = new HashMap<>( );
-
-                                Iterator<JsonNode> dataIterator = arrayDataNode.elements( );
-                                while ( dataIterator.hasNext( ) )
-                                {
-                                    JsonNode dataNode = dataIterator.next( );
-                                    mapData.put( dataNode.get( "id" ).asText( ), dataNode.get( "active" ).asText( ) );
-                                }
-
-                                sub.setData( mapData );
-                            }
-
-                            subscriptionList.add( sub );
-                        }
-                    }
-
-                    // update subscriptions by feed type
-                    BroadcastService.getInstance( ).updateSubscribtions( subscriptionList );
-                }
-            }
-
+            // update subscriptions by feed type
+            BroadcastService.getInstance( ).updateSubscribtions( userId, jsonResponse );
         }
         catch( Exception e )
         {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,9 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.web;
 
-import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
-import fr.paris.lutece.plugins.broadcastproxy.service.Constants;
 import fr.paris.lutece.plugins.mydashboard.service.MyDashboardComponent;
-import fr.paris.lutece.portal.service.datastore.DatastoreService;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
@@ -48,13 +45,13 @@ import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.utils.MVCMessage;
 import fr.paris.lutece.portal.web.l10n.LocaleService;
 import fr.paris.lutece.util.ErrorMessage;
-import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.html.HtmlTemplate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -65,36 +62,33 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
 
     // Markers
-    private static final String MARK_SUBSCRIPTION_LIST_BY_TYPE = "subscription_list_by_type";
-    private static final String MARK_SUBSCRIPTION_TYPE_LIST = "subscription_types";
-    private static final String MARK_SUBSCRIPTION_FEED_LIST_BY_TYPE = "subscription_feeds_by_type";
+    private static final String MARK_USER_SUBSCRIPTIONS = "user_subscriptions";
     private static final String MARK_BROADCASTPROXY = "broadcastproxy";
     private static final String MARK_LUTECE_USER = "user";
     private static final String MARK_INFOS = "infos";
+    private static final String MARK_SUBSCRIPTIONS_DESCRIPTION = "descriptions";
 
     // instance variables
-    ReferenceList _subscriptionTypes = null;
-    Map<String, List<Feed>> _subscriptionFeedsByType = null;
-    String [ ] _feedTypes = null;
     private List<ErrorMessage> _listInfos = new ArrayList<>( );
 
     // constants
-    private static final String DS_KEY_FEEDTYPES = "broadcastproxy.site_property.mydashboard.feedtypes";
     private static final String MYDASHBOARD_BROADCASTPROXY_ID = "broadcastproxy.myDashboard";
     private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
+
+    private static final String SUB_DESCRIPTION_CONSTANT_PREFIX = AppPropertiesService.getProperty( "subscription.description.CONSTANT_PREFIX" );
 
     // Templates
     private static final String TEMPLATE_DASHBOARD = "skin/plugins/mydashboard/modules/broadcastproxy/broadcastproxy_mydashboard.html";
 
     // SESSION DATA
     private LuteceUser _luteceUser;
-    private String _plugin = "broadcastproxy";
 
     @Override
     public String getDashboardData( HttpServletRequest request )
     {
         _listInfos.clear( );
         Map<String, Object> model = new HashMap<>( );
+        Map<String, String> subscriptionsDescription = new HashMap<String, String>( );
 
         if ( SecurityService.isAuthenticationEnable( ) )
         {
@@ -107,10 +101,8 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 
         if ( _luteceUser != null )
         {
+            Map<String, Map<String, List<Subscription>>> userSubscriptions = new HashMap<>( );
 
-            initSubscriptionFeeds( );
-
-            Map<String, List<Subscription>> listSubscriptionsByType = new HashMap<>( );
             String userMail = _luteceUser.getEmail( );
             if ( StringUtils.isBlank( userMail ) )
             {
@@ -121,30 +113,23 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
                 }
             }
 
-            for ( String feedType : _feedTypes )
+            try
             {
-                if ( StringUtils.isBlank( feedType ) )
-                    continue;
+                userSubscriptions = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userMail );
 
-                try
-                {
-                    List<Subscription> list = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userMail, feedType );
-                    listSubscriptionsByType.put( feedType, list );
+                subscriptionsDescription = getSubscriptionsDescription( );
 
-                    model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
-                }
-                catch( Exception e )
-                {
-                    addInfo( I18nService.getLocalizedString( PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS, LocaleService.getDefault( ) ) );
-                    AppLogService.error( e.getMessage( ) );
-                }
+                model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
+            }
+            catch( Exception e )
+            {
+                addInfo( I18nService.getLocalizedString( PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS, LocaleService.getDefault( ) ) );
+                AppLogService.error( e.getMessage( ) );
             }
 
-            model.put( MARK_SUBSCRIPTION_LIST_BY_TYPE, listSubscriptionsByType );
-
-            model.put( MARK_SUBSCRIPTION_TYPE_LIST, _subscriptionTypes );
-            model.put( MARK_SUBSCRIPTION_FEED_LIST_BY_TYPE, _subscriptionFeedsByType );
+            model.put( MARK_USER_SUBSCRIPTIONS, userSubscriptions );
             model.put( MARK_INFOS, _listInfos );
+            model.put( MARK_SUBSCRIPTIONS_DESCRIPTION, subscriptionsDescription );
         }
 
         HtmlTemplate t = AppTemplateService.getTemplate( TEMPLATE_DASHBOARD, LocaleService.getUserSelectedLocale( request ), model );
@@ -164,49 +149,17 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
         return I18nService.getLocalizedString( PROPERTY_MYDASHBOARD_DESCRIPTION, locale );
     }
 
-    /**
-     * init
-     */
-    private void initSubscriptionFeeds( )
+    private Map<String, String> getSubscriptionsDescription( )
     {
-        if ( _subscriptionFeedsByType == null )
+        Map<String, String> descriptions = new HashMap<String, String>( );
+
+        List<String> descriptionsList = AppPropertiesService.getKeys( SUB_DESCRIPTION_CONSTANT_PREFIX );
+        for ( String description : descriptionsList )
         {
-            String strFeedTypes = DatastoreService.getDataValue( DS_KEY_FEEDTYPES, Constants.TYPE_NEWSLETTER );
-            if ( !StringUtils.isBlank( strFeedTypes ) )
-            {
-                _feedTypes = strFeedTypes.split( "," );
-                _subscriptionFeedsByType = new HashMap<>( );
-                _subscriptionTypes = new ReferenceList( );
-
-                for ( String feedType : _feedTypes )
-                {
-                    _subscriptionFeedsByType.put( feedType, new ArrayList<>( ) );
-                    _subscriptionTypes.addItem( feedType, "Description of " + feedType );
-                }
-
-                List<Feed> listFeeds = BroadcastService.getInstance( ).getFeeds( );
-
-                AppLogService.debug( "Feedz by type size : " + _subscriptionFeedsByType.get( "ALERT" ).size( ) ) ;
-                for ( Feed feed : listFeeds )
-                {
-                    if ( _subscriptionFeedsByType.get( feed.getType( ) ) != null )
-                    {
-                        AppLogService.debug ("----------- test feed : " + feed.getType( ) + "/" + feed.getId( ) );
-                        boolean feedAlreadyAdded = false;
-                        for ( Feed feedItem : _subscriptionFeedsByType.get( feed.getType( ) ) ) {
-                            if ( feedItem.getId( ).equals( feed.getId( ) ) && feedItem.getType( ).equals( feed.getType( ) ) )
-                            {
-                                feedAlreadyAdded = true;
-                                AppLogService.debug ( "feedAlreadyAdded" );
-                            }
-                        }
-                        if ( !feedAlreadyAdded ) _subscriptionFeedsByType.get( feed.getType( ) ).add( feed );
-                    }
-                }
-
-                AppLogService.debug( "Feedz by type size : " + _subscriptionFeedsByType.get( "ALERT" ).size( ) ) ;
-            }
+            descriptions.put( description.substring( SUB_DESCRIPTION_CONSTANT_PREFIX.length( ) + 1 ), AppPropertiesService.getProperty( description ) );
         }
+
+        return descriptions;
     }
 
     /**

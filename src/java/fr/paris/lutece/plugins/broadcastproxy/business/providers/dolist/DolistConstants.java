@@ -31,13 +31,13 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.broadcastproxy.service;
+package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
-public class Constants
+public class DolistConstants
 {
-    public static String TYPE_ALERT = "ALERT";
-    public static String TYPE_NEWSLETTER = "NEWSLETTER";
-    public static String ACTION_ADD = "ADD";
-    public static String ACTION_DELETE = "DELETE";
+    public static String TYPE_SUBSCRIPTION = "SUBSCRIPTION";
+    public static String TYPE_INTEREST = "INTEREST";
+
+    public static String NO_GROUP_NAME = "NONE";
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2019, Mairie de Paris
+ * Copyright (c) 2002-2020, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,9 @@ import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.portal.service.init.LuteceInitException;
 import fr.paris.lutece.portal.service.spring.SpringContextService;
 import fr.paris.lutece.portal.service.util.AppLogService;
+
 import java.util.List;
+import java.util.Map;
 
 public class BroadcastService
 {
@@ -92,10 +94,8 @@ public class BroadcastService
     {
         if ( _broadcastProvider == null )
         {
-
             _broadcastProvider = (IBroadcastProvider) SpringContextService.getBean( BEAN_BROADCAST_PROVIDER );
             AppLogService.info( "BroadcastProvider loaded : " + _broadcastProvider.getName( ) );
-
         }
     }
 
@@ -108,21 +108,21 @@ public class BroadcastService
      * @param typeSubscription
      * @return a JSON String
      */
-    public String getUserSubscriptionsAsJson( String userId, String typeSubscription ) throws Exception
+    public String getUserSubscriptionsAsJson( String userId ) throws Exception
     {
-        return _broadcastProvider.getUserSubscriptionsAsJson( userId, typeSubscription );
+        return _broadcastProvider.getUserSubscriptionsAsJson( userId );
     }
 
     /**
-     * get user subscriptions returns the user subscription list as a list of Subscription beans
+     * returns the user subscriptions list as list of Subscriptions by groups (themes) in HashMap with Group name as key
      * 
      * @param userId
      * @param typeSubscription
      * @return a JSON String
      */
-    public List<Subscription> getUserSubscriptionsAsList( String userId, String typeSubscription ) throws Exception
+    public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsAsList( String userId ) throws Exception
     {
-        return _broadcastProvider.getUserSubscriptionsAsList( userId, typeSubscription );
+        return _broadcastProvider.getUserSubscriptionsAsList( userId );
     }
 
     /**
@@ -132,9 +132,21 @@ public class BroadcastService
      * @return true if success
      * @throws Exception
      */
-    public boolean updateSubscribtions( List<Subscription> subscriptionsList ) throws Exception
+    public boolean updateSubscribtions( String userId, List<Subscription> subscriptionsList ) throws Exception
     {
-        return _broadcastProvider.updateSubscribtions( subscriptionsList );
+        return _broadcastProvider.updateSubscribtions( userId, subscriptionsList );
+    }
+
+    /**
+     * update user subscriptions to the specified subscription list
+     * 
+     * @param subscriptionsList
+     * @return true if success
+     * @throws Exception
+     */
+    public boolean updateSubscribtions( String userId, String jsonSubscriptions ) throws Exception
+    {
+        return _broadcastProvider.updateSubscribtions( userId, jsonSubscriptions );
     }
 
     /**
