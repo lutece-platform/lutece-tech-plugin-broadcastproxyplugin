@@ -58,7 +58,8 @@ import org.codehaus.plexus.util.StringUtils;
 public class MyDashboardBroadcastproxy extends MyDashboardComponent
 {
     // PROPERTIES
-    private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.myDashboard.description";
+    //private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.myDashboard.description";
+    private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.component.broadcastproxy.description";
     private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
 
     // Markers
