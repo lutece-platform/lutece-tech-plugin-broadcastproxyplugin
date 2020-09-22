@@ -55,6 +55,11 @@ import javax.servlet.http.HttpServletRequest;
 @Controller( controllerJsp = "ManageBroadcastProxy.jsp", controllerPath = "jsp/admin/plugins/broadcastproxy/", right = "BROADCASTPROXY_MANAGEMENT" )
 public class BroadcastproxyJspBean extends MVCAdminJspBean
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Templates
     private static final String TEMPLATE_TEST_BROADCASTPROXY = "/admin/plugins/broadcastproxy/managebroadcastproxy.html";
 
@@ -156,7 +161,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
     @Action( value = ACTION_UPDATE_USER_SUBSCRIPTIONS )
     public String doUpdateUserSubscribtions( HttpServletRequest request )
     {
-        Map<String, Object> model = getModel( );
         initSubscriptionFeeds( );
 
         List<Subscription> subscriptionsList = new ArrayList<>( );
@@ -201,7 +205,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             {
                 Object obj = enum1.nextElement( );
                 String fieldName = (String) obj;
-                String fieldValue = request.getParameter( fieldName );
 
                 // set subscription states
                 if ( fieldName.startsWith( "SUB_" + _currentFeedType + "_" ) )
@@ -266,7 +269,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
     @Action( value = ACTION_SUBSCRIBE )
     public String doSubscribe( HttpServletRequest request )
     {
-        Map<String, Object> model = getModel( );
         initSubscriptionFeeds( );
 
         if ( request.getParameter( PARAMETER_USER_ID ) != null )
@@ -326,7 +328,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
     @Action( value = ACTION_UNSUBSCRIBE )
     public String doUnsubscribe( HttpServletRequest request )
     {
-        Map<String, Object> model = getModel( );
         initSubscriptionFeeds( );
 
         if ( request.getParameter( PARAMETER_USER_ID ) != null )

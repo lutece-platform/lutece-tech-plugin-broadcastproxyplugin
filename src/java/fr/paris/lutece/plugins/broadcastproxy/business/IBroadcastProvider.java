@@ -123,4 +123,12 @@ public interface IBroadcastProvider
      * @return the list
      */
     List<Feed> getFeeds( );
+
+    /**
+     * get the subscription view order
+     * 
+     * @return the list
+     */
+    public List<String> getSubscriptionViewOrder( );
+
 }

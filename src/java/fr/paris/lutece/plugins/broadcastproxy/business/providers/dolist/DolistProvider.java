@@ -35,9 +35,11 @@ package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -63,6 +65,7 @@ public class DolistProvider implements IBroadcastProvider
     private static final String JSON_NODE_ITEM_STATUS = AppPropertiesService.getProperty( "dolist.jsonNode.item.Status" );
     private static final String JSON_NODE_SUB_ID = AppPropertiesService.getProperty( "dolist.jsonNode.sub.SubscriptionID" );
     private static final String JSON_NODE_INTEREST_NAME = AppPropertiesService.getProperty( "dolist.jsonNode.interest.Name" );
+    private static final String JSON_NODE_INTEREST_IS_ACTIVE = AppPropertiesService.getProperty( "dolist.jsonNode.interest.isActive" );
     private static final String JSON_NODE_GROUP_NAME = AppPropertiesService.getProperty( "dolist.jsonNode.group.Name" );
     private static final String JSON_NODE_SUB_NAME = AppPropertiesService.getProperty( "dolist.jsonNode.sub.Name" );
     private static final String JSON_NODE_SUB_SUBSCRIBED = AppPropertiesService.getProperty( "dolist.jsonNode.sub.Subscribed" );
@@ -74,6 +77,7 @@ public class DolistProvider implements IBroadcastProvider
     // instance variables
     private DolistAPI _dolistAPI;
 
+    private TreeMap<Integer, String> _groupViewRang = new TreeMap<>( );
     private Map<String, String> _groupsMapIdName = new HashMap<>( );
     private Map<String, String> _interestsMapIdName = new HashMap<>( );
     private Map<String, String> _subscriptionsMapIdName = new HashMap<>( );
@@ -208,6 +212,19 @@ public class DolistProvider implements IBroadcastProvider
         return null;
     }
 
+    @Override
+    public List<String> getSubscriptionViewOrder( )
+    {
+        List<String> subscriptionViewOrder = new ArrayList<String>( );
+
+        for ( Map.Entry<Integer, String> group : _groupViewRang.entrySet( ) )
+        {
+            subscriptionViewOrder.add( group.getValue( ) );
+        }
+
+        return subscriptionViewOrder;
+    }
+
     public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsByGroup( String jsonUserDolistSubscriptions, String userId ) throws Exception
     {
         Map<String, Map<String, List<Subscription>>> userSubscriptions = new HashMap<String, Map<String, List<Subscription>>>( );
@@ -228,18 +245,7 @@ public class DolistProvider implements IBroadcastProvider
             {
                 if ( subscriptionsNamesByGroup.getKey( ) != null )
                 {
-                    String subscriptionType = StringUtils.EMPTY;
                     List<Subscription> subscriptionsList = new ArrayList<>( );
-                    String groupName = subscriptionsNamesByGroup.getKey( );
-
-                    if ( groupName.equals( "Alertes" ) )
-                    {
-                        subscriptionType = Constants.TYPE_ALERT;
-                    }
-                    else
-                    {
-                        subscriptionType = Constants.TYPE_NEWSLETTER;
-                    }
 
                     for ( String name : subscriptionsNamesByGroup.getValue( ) )
                     {
@@ -257,13 +263,21 @@ public class DolistProvider implements IBroadcastProvider
                         subscriptionsList.add( sub );
                     }
 
-                    if ( subscriptionsList.size( ) == 1 && subscriptionsList.get( 0 ).getName( ).equals( groupName ) )
-                    {
-                        groupName = DolistConstants.NO_GROUP_NAME;
-                    }
+                    String groupName = subscriptionsNamesByGroup.getKey( );
 
-                    if ( subscriptionType.equals( Constants.TYPE_NEWSLETTER ) )
+                    if ( groupName.equals( "Alertes" ) )
                     {
+                        // subscriptionType = Constants.TYPE_ALERT;
+                        if ( userAlerts.containsKey( groupName ) )
+                        {
+                            subscriptionsList.addAll( userAlerts.get( groupName ) );
+                        }
+
+                        userAlerts.put( groupName, subscriptionsList );
+                    }
+                    else
+                    {
+                        // subscriptionType = Constants.TYPE_NEWSLETTER;
                         if ( userNewsletters.containsKey( groupName ) )
                         {
                             subscriptionsList.addAll( userNewsletters.get( groupName ) );
@@ -271,16 +285,6 @@ public class DolistProvider implements IBroadcastProvider
 
                         userNewsletters.put( groupName, subscriptionsList );
                     }
-                    else
-                        if ( subscriptionType.equals( Constants.TYPE_ALERT ) )
-                        {
-                            if ( userAlerts.containsKey( groupName ) )
-                            {
-                                subscriptionsList.addAll( userAlerts.get( groupName ) );
-                            }
-
-                            userAlerts.put( groupName, subscriptionsList );
-                        }
                 }
             }
 
@@ -311,7 +315,6 @@ public class DolistProvider implements IBroadcastProvider
         JsonNode nodes = mapper.readTree( jsonAllSubscriptions );
         if ( nodes.get( JSON_NODE_ITEMLIST ).isNull( ) )
             return null;
-
         try
         {
             JsonNode itemListNode = nodes.get( JSON_NODE_ITEMLIST );
@@ -322,15 +325,23 @@ public class DolistProvider implements IBroadcastProvider
 
                 groupName = groupData.get( JSON_NODE_GROUP_NAME ).asText( );
 
-                if ( groupName.substring( 0, 1 ).equals( "[" ) && groupName.substring( groupName.length( ) - 1, groupName.length( ) ).equals( "]" ) )
+                if ( groupName.substring( 0, 1 ).equals( "[" ) && groupName.substring( groupName.length( ) - 1, groupName.length( ) ).equals( "]" )
+                        && groupName.length( ) > 2 )
                 {
-                    groupName = groupName.substring( 1, groupName.length( ) - 1 );
+                    String [ ] splitDlGrName = groupName.split( "\\]" );
+
+                    groupName = splitDlGrName [0].substring( 1, splitDlGrName [0].length( ) );
 
                     List<String> SubscriptionsNamesList = new ArrayList<String>( );
                     for ( JsonNode node : itemNode.get( JSON_NODE_ITEM_INTERESTLIST ) )
                     {
-                        SubscriptionsNamesList.add( node.get( JSON_NODE_INTEREST_NAME ).asText( ) );
+                        if ( !node.has( JSON_NODE_INTEREST_IS_ACTIVE ) )
+                        {
+                            SubscriptionsNamesList.add( node.get( JSON_NODE_INTEREST_NAME ).asText( ) );
+                        }
                     }
+
+                    Collections.sort( SubscriptionsNamesList );
 
                     SubscriptionsName.put( groupName, SubscriptionsNamesList );
                 }
@@ -349,9 +360,16 @@ public class DolistProvider implements IBroadcastProvider
     {
         ObjectMapper mapper = new ObjectMapper( );
         List<String> userSubscriptionNamesList = new ArrayList<String>( );
+        List<String> activeSubscriptionsId = new ArrayList<String>( );
 
         try
         {
+            // Get list of only active subscriptions
+            for ( Map.Entry<String, String> subEntry : _subscriptionsMapIdName.entrySet( ) )
+            {
+                activeSubscriptionsId.add( subEntry.getKey( ) );
+            }
+
             JsonNode nodes = mapper.readTree( jsonResponse );
             if ( nodes.get( JSON_NODE_ITEMLIST ).isNull( ) )
                 return null;
@@ -363,7 +381,8 @@ public class DolistProvider implements IBroadcastProvider
                 {
                     for ( JsonNode itemNode : itemListNode )
                     {
-                        if ( itemNode.get( JSON_NODE_ITEM_STATUS ).asText( ).equals( JSON_NODE_SUB_SUBSCRIBED ) )
+                        if ( activeSubscriptionsId.contains( itemNode.get( JSON_NODE_SUB_ID ).asText( ) )
+                                && itemNode.get( JSON_NODE_ITEM_STATUS ).asText( ).equals( JSON_NODE_SUB_SUBSCRIBED ) )
                             userSubscriptionNamesList.add( _subscriptionsMapIdName.get( itemNode.get( JSON_NODE_SUB_ID ).asText( ) ) );
                     }
                 }
@@ -475,7 +494,10 @@ public class DolistProvider implements IBroadcastProvider
 
             for ( JsonNode node : itemListNode )
             {
-                _subscriptionsMapIdName.put( node.get( "ID" ).asText( ), node.get( JSON_NODE_SUB_NAME ).asText( ) );
+                if ( node.get( "IsEnabled" ).asBoolean( ) )
+                {
+                    _subscriptionsMapIdName.put( node.get( "ID" ).asText( ), node.get( JSON_NODE_SUB_NAME ).asText( ) );
+                }
             }
 
             // Get interests data (id and name)
@@ -489,12 +511,33 @@ public class DolistProvider implements IBroadcastProvider
             for ( JsonNode node : itemListNode )
             {
                 JsonNode groupData = node.get( JSON_NODE_ITEM_GROUP );
-                _groupsMapIdName.put( groupData.get( "ID" ).asText( ), groupData.get( JSON_NODE_GROUP_NAME ).asText( ) );
 
-                JsonNode intersts = node.get( JSON_NODE_ITEM_INTERESTLIST );
-                for ( JsonNode interest : intersts )
+                String dolistGroupName = groupData.get( JSON_NODE_GROUP_NAME ).asText( );
+                if ( dolistGroupName.substring( 0, 1 ).equals( "[" )
+                        && dolistGroupName.substring( dolistGroupName.length( ) - 1, dolistGroupName.length( ) ).equals( "]" ) )
                 {
-                    _interestsMapIdName.put( interest.get( "ID" ).asText( ), interest.get( JSON_NODE_INTEREST_NAME ).asText( ) );
+                    String [ ] splitDlGrName = dolistGroupName.split( "\\]" );
+
+                    if ( splitDlGrName.length > 0 )
+                    {
+                        String groupName = splitDlGrName [0].substring( 1, splitDlGrName [0].length( ) );
+
+                        if ( splitDlGrName.length == 2 && splitDlGrName [1].length( ) > 0 && !groupName.equals( "Alertes" ) )
+                        {
+                            _groupViewRang.put( Integer.valueOf( splitDlGrName [1].substring( 1, splitDlGrName [1].length( ) ) ), groupName );
+                        }
+
+                        _groupsMapIdName.put( groupData.get( "ID" ).asText( ), groupName );
+
+                        JsonNode intersts = node.get( JSON_NODE_ITEM_INTERESTLIST );
+                        for ( JsonNode interest : intersts )
+                        {
+                            if ( !interest.has( JSON_NODE_INTEREST_IS_ACTIVE ) )
+                            {
+                                _interestsMapIdName.put( interest.get( "ID" ).asText( ), interest.get( JSON_NODE_INTEREST_NAME ).asText( ) );
+                            }
+                        }
+                    }
                 }
             }
         }

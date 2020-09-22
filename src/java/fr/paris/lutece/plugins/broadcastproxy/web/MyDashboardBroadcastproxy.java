@@ -57,13 +57,18 @@ import org.codehaus.plexus.util.StringUtils;
 
 public class MyDashboardBroadcastproxy extends MyDashboardComponent
 {
-    // PROPERTIES
-    //private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.myDashboard.description";
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    // PROPERTIES 
     private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.component.broadcastproxy.description";
     private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
 
     // Markers
     private static final String MARK_USER_SUBSCRIPTIONS = "user_subscriptions";
+    private static final String MARK_SUBSCRIPTION_VIEW_ORDER = "subscriptions_order";
     private static final String MARK_BROADCASTPROXY = "broadcastproxy";
     private static final String MARK_LUTECE_USER = "user";
     private static final String MARK_INFOS = "infos";
@@ -90,6 +95,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
         _listInfos.clear( );
         Map<String, Object> model = new HashMap<>( );
         Map<String, String> subscriptionsDescription = new HashMap<String, String>( );
+        List<String> subscriptionViewOrder = new ArrayList<String>( );
 
         if ( SecurityService.isAuthenticationEnable( ) )
         {
@@ -116,11 +122,15 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 
             try
             {
-                userSubscriptions = BroadcastService.getInstance( ).getUserSubscriptionsAsList( userMail );
+                BroadcastService broadcastService = BroadcastService.getInstance( );
+
+                userSubscriptions = broadcastService.getUserSubscriptionsAsList( userMail );
+
+                subscriptionViewOrder = broadcastService.getSubscriptionViewOrder( );
 
                 subscriptionsDescription = getSubscriptionsDescription( );
 
-                model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
+                model.put( MARK_BROADCASTPROXY, broadcastService.getName( ) );
             }
             catch( Exception e )
             {
@@ -129,6 +139,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
             }
 
             model.put( MARK_USER_SUBSCRIPTIONS, userSubscriptions );
+            model.put( MARK_SUBSCRIPTION_VIEW_ORDER, subscriptionViewOrder );
             model.put( MARK_INFOS, _listInfos );
             model.put( MARK_SUBSCRIPTIONS_DESCRIPTION, subscriptionsDescription );
         }

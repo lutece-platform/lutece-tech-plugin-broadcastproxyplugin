@@ -68,49 +68,51 @@ border-color: #28a745;
 			<#if user_subscriptions[subscription_type]?hasContent >
 				<div class="container subscriptionsTypeDiv" id="div_subscription_type${subscription_type}" >
 					<#assign user_subscriptions_by_type = user_subscriptions[subscription_type]>	
-					<h2 class="main-color">Mes newsletters</h2>	   
+					<h2 class="main-color">Mes newsletters</h2>	  
 					<div class="row"> 
-						<!---------------- Subscriptions without Groups (Newsletters) -------------------->
-						<#if user_subscriptions_by_type["NONE"]?hasContent >
-							<#assign group_name = 'NONE'>
-							<#assign user_subscriptions_by_group = user_subscriptions_by_type[group_name]>							
-							<#list user_subscriptions_by_group as sub>
-								<div class="col-md-6">
-									<div class="SubscriptionDiv">
-										<#assign checkBoxName=sub.id >
-										<#assign checked = "" >
-										<#if sub.active = true ><#assign checked = "checked" ></#if>
-										<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.name}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />
-										<p class="py-2 font-m-light">
-											${descriptions[sub.id]!''}
-										</p>	
-									</div>
-          						</div>
-							</#list>
-						</#if>				
-						<!---------------- Subscriptions with Groups (Newsletters) -------------------->
-						<#list user_subscriptions_by_type?keys as group_name >
-							<#if user_subscriptions_by_type[group_name]?hasContent && group_name != 'NONE'>
-    							<#assign user_subscriptions_by_group = user_subscriptions_by_type[group_name]>	
-								<div class="container ml-1">
-									<div class=row>
+						<#list subscriptions_order as group_name>
+							<#if user_subscriptions_by_type[group_name]?hasContent>
+    							<#assign user_subscriptions_by_group = user_subscriptions_by_type[group_name]>    							
+    								
+    							<#if user_subscriptions_by_group?size = 1 && user_subscriptions_by_group[0].name = group_name>	
+    							
+    								<!---------------- Subscriptions without Groups (Newsletters) -------------------->		
+									<#list user_subscriptions_by_group as sub>
 										<div class="col-md-6">
-											<strong>${group_name} </strong>	
-											<p class="py-2 font-m-light">
-												${descriptions[group_name]!''}
-											</p>										
-											<#list user_subscriptions_by_group as sub>												
-													<div class="SubscriptionDiv">
-														<#assign checkBoxName=sub.id >
-														<#assign checked = "" >
-														<#if sub.active = true ><#assign checked = "checked" ></#if>
-														<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.id}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />					
-														
-													</div>
-											</#list>
-										</div>	
-									</div>
-								</div>					
+											<div class="SubscriptionDiv">
+												<#assign checkBoxName=sub.id >
+												<#assign checked = "" >
+												<#if sub.active = true ><#assign checked = "checked" ></#if>
+												<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.name}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />
+												<p class="py-2 font-m-light">
+													${descriptions[sub.id]!''}
+												</p>	
+											</div>
+		          						</div>
+									</#list>  
+								<#else>
+								
+									<!---------------- Subscriptions with Groups (Newsletters) -------------------->
+									<div class="container ml-1">
+										<div class=row>
+											<div class="col-md-6">
+												<strong>${group_name} </strong>	
+												<p class="py-2 font-m-light">
+													${descriptions[group_name]!''}
+												</p>										
+												<#list user_subscriptions_by_group as sub>												
+														<div class="SubscriptionDiv">
+															<#assign checkBoxName=sub.id >
+															<#assign checked = "" >
+															<#if sub.active = true ><#assign checked = "checked" ></#if>
+															<@switchCheckBox name=checkBoxName  checked=checked label="<h3>${sub.id}</h3>" class="subscriptionCheckBox" subtype=subscription_type groupname=group_name />					
+															
+														</div>
+												</#list>
+											</div>	
+										</div>
+									</div>									  							
+    							</#if>    							
    							</#if>
 						</#list>
    					</div>	

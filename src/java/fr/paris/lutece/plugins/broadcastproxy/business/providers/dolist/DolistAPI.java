@@ -66,6 +66,7 @@ public class DolistAPI
     private static final String URL_GROUP_INTERESTS = AppPropertiesService.getProperty( "dolist.URL_PATH_GROUP_INTERESTS" );
     private static final String URL_OPERATION_MODE = AppPropertiesService.getProperty( "dolist.URL_PATH_OPERATION_MODE" );
     private static final String URL_CONTACT_INTEREST_ORIGIN = AppPropertiesService.getProperty( "dolist.URL_PATH_CONTACT_INTEREST_ORIGIN" );
+    private static final String URL_INTERESTS_ACTIVE_ONLY = AppPropertiesService.getProperty( "dolist.URL_PATH_INTERESTS_ACTIVE_ONLY" );
 
     // Markers
     private static final String MARK_HEADER_CONTENT_TYPE = AppPropertiesService.getProperty( "dolist.MARK_HEADER_CONTENT_TYPE" );
@@ -84,6 +85,7 @@ public class DolistAPI
     private static final String CONSTANTE_CHANNEL = AppPropertiesService.getProperty( "dolist.CONSTANTE_CHANNEL" );
     private static final String CONSTANTE_EMAIL_FIELD_ID = AppPropertiesService.getProperty( "dolist.CONSTANTE_EMAIL_FIELD_ID" );
     private static final String CONSTANTE_CONTACT_INTEREST_ORIGIN = AppPropertiesService.getProperty( "dolist.CONSTANTE_CONTACT_INTEREST_ORIGIN" );
+    private static final String CONSTANTE_INTERESTS_ACTIVE_ONLY = AppPropertiesService.getProperty( "dolist.CONSTANTE_INTERESTS_ACTIVE_ONLY" );
 
     private static final String CONSTANTE_REQUEST_BODY_CONTACT = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_CONTACT" );
     private static final String CONSTANTE_REQUEST_BODY_QUERY = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_QUERY" );
@@ -241,7 +243,8 @@ public class DolistAPI
                 if ( typeSubscription.equals( DolistConstants.TYPE_INTEREST ) )
                 {
                     // Get dolist alerts ids and names (Dolist interests)
-                    strUrl = URL_BASE_API + URL_INTERESTS + URL_GROUP_INTERESTS + "?" + URL_ACCOUNT_ID + "=" + CONSTANTE_ACCOUNT_ID;
+                    strUrl = URL_BASE_API + URL_INTERESTS + URL_GROUP_INTERESTS + "?" + URL_ACCOUNT_ID + "=" + CONSTANTE_ACCOUNT_ID + "&"
+                            + URL_INTERESTS_ACTIVE_ONLY + "=" + CONSTANTE_INTERESTS_ACTIVE_ONLY;
                 }
 
             Map<String, String> mapHeaders = constructHeader( );

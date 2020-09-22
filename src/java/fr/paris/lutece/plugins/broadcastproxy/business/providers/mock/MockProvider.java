@@ -161,4 +161,11 @@ public class MockProvider implements IBroadcastProvider
         return false;
     }
 
+    @Override
+    public List<String> getSubscriptionViewOrder( )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

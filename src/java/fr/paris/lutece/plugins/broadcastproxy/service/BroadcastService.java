@@ -189,6 +189,11 @@ public class BroadcastService
         return _broadcastProvider.update( sub );
     }
 
+    public List<String> getSubscriptionViewOrder( )
+    {
+        return _broadcastProvider.getSubscriptionViewOrder( );
+    }
+
     /**
      * get the list of available feeds
      * 
