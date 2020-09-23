@@ -34,10 +34,12 @@
 package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
 import java.io.IOException;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -341,7 +343,7 @@ public class DolistProvider implements IBroadcastProvider
                         }
                     }
 
-                    Collections.sort( SubscriptionsNamesList );
+                    Collections.sort( SubscriptionsNamesList, Collator.getInstance(Locale.FRENCH) );
 
                     SubscriptionsName.put( groupName, SubscriptionsNamesList );
                 }
