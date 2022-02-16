@@ -33,9 +33,14 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.web;
 
-import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
+import java.io.BufferedReader;
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
+
+import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
 import fr.paris.lutece.portal.service.util.AppLogService;
@@ -47,9 +52,6 @@ import fr.paris.lutece.portal.web.xpages.XPage;
 import fr.paris.lutece.util.json.ErrorJsonResponse;
 import fr.paris.lutece.util.json.JsonResponse;
 import fr.paris.lutece.util.json.JsonUtil;
-import java.io.BufferedReader;
-import java.io.IOException;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * MyLuteceParisConnectXPage

@@ -33,6 +33,16 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.web;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
+
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import fr.paris.lutece.plugins.mydashboard.service.MyDashboardComponent;
@@ -46,14 +56,6 @@ import fr.paris.lutece.portal.util.mvc.utils.MVCMessage;
 import fr.paris.lutece.portal.web.l10n.LocaleService;
 import fr.paris.lutece.util.ErrorMessage;
 import fr.paris.lutece.util.html.HtmlTemplate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import org.codehaus.plexus.util.StringUtils;
 
 public class MyDashboardBroadcastproxy extends MyDashboardComponent
 {
