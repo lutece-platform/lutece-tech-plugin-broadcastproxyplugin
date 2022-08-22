@@ -33,7 +33,9 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 import org.apache.http.HttpHost;
@@ -98,10 +100,11 @@ public class DolistHttpAccess
         return httpResponse;
     }
 
-    public HttpResponse doPost( String strUrl, String jsonParams, Map<String, String> headers )
+    public String doPost( String strUrl, String jsonParams, Map<String, String> headers )
     {
         CloseableHttpClient client = HttpClientBuilder.create( ).build( );
         HttpResponse httpResponse = null;
+        String strResponse = null;
         HttpPost method = new HttpPost( strUrl );
 
         try
@@ -124,6 +127,15 @@ public class DolistHttpAccess
             method.setConfig( config );
 
             httpResponse = client.execute( method );
+
+            // If error
+            if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+            {
+                AppLogService.error( "Returned Dolist error : " + strResponse );
+            }
+            
+            // Get response in String
+            strResponse = httpToStrResponse( httpResponse );
         }
         catch( IOException e )
         {
@@ -137,13 +149,14 @@ public class DolistHttpAccess
             method.releaseConnection( );
         }
 
-        return httpResponse;
+        return strResponse;
     }
 
-    public HttpResponse doPut( String strUrl, String jsonParams, Map<String, String> headers )
+    public String doPut( String strUrl, String jsonParams, Map<String, String> headers )
     {
         CloseableHttpClient client = HttpClientBuilder.create( ).build( );
         HttpResponse httpResponse = null;
+        String strResponse = null;
         HttpPut method = new HttpPut( strUrl );
 
         try
@@ -165,7 +178,16 @@ public class DolistHttpAccess
             RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
             method.setConfig( config );
 
-            httpResponse = client.execute( method );
+            httpResponse = client.execute( method );            
+
+            // If error
+            if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+            {
+                AppLogService.error( "Returned Dolist error : " + strResponse );
+            }
+
+            // Get response in String
+            strResponse = httpToStrResponse( httpResponse );
         }
         catch( IOException e )
         {
@@ -178,8 +200,8 @@ public class DolistHttpAccess
             // Release the connection.
             method.releaseConnection( );
         }
-
-        return httpResponse;
+        
+        return strResponse;
     }
 
     public HttpResponse doDelete( String strUrl, Map<String, String> headers )
@@ -221,5 +243,31 @@ public class DolistHttpAccess
         }
 
         return httpResponse;
+    }
+    
+
+    /**
+     * Stringify httpResponse
+     * 
+     * @param httpResponse
+     * @return the response as string
+     * @throws IOException
+     */
+    private String httpToStrResponse( HttpResponse httpResponse ) throws IOException
+    {
+        StringBuilder strResponse = new StringBuilder( );
+
+        // Get response data in string
+        if ( httpResponse != null && httpResponse.getEntity( ) != null && httpResponse.getEntity( ).getContent( ) != null )
+        {
+            BufferedReader bufferedreader = new BufferedReader( new InputStreamReader( httpResponse.getEntity( ).getContent( ) ) );
+            String line = "";
+            while ( ( line = bufferedreader.readLine( ) ) != null )
+            {
+                strResponse.append( line );
+            }
+        }
+
+        return strResponse.toString( );
     }
 }

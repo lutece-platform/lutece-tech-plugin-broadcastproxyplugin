@@ -33,16 +33,13 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -425,21 +422,9 @@ public class DolistAPI
      */
     private String callDoPost( String strUrl, String jsonParams, Map<String, String> mapHeaders ) throws IOException, HttpAccessException
     {
-        HttpResponse httpResponse;
         DolistHttpAccess dlhttpaccess = new DolistHttpAccess( );
 
-        httpResponse = dlhttpaccess.doPost( strUrl, jsonParams, mapHeaders );
-
-        // Get response in String
-        String strResponse = httpToStrResponse( httpResponse );
-
-        // If error
-        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
-        {
-            AppLogService.error( "Returned Dolist error : " + strResponse );
-        }
-
-        return strResponse;
+        return dlhttpaccess.doPost( strUrl, jsonParams, mapHeaders );
     }
 
     /**
@@ -454,22 +439,9 @@ public class DolistAPI
      */
     private String callDoPut( String strUrl, String jsonParams, Map<String, String> mapHeaders ) throws IOException, HttpAccessException
     {
-
-        HttpResponse httpResponse;
         DolistHttpAccess dlhttpaccess = new DolistHttpAccess( );
 
-        httpResponse = dlhttpaccess.doPut( strUrl, jsonParams, mapHeaders );
-
-        // Get response in String
-        String strResponse = httpToStrResponse( httpResponse );
-
-        // If error
-        if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
-        {
-            AppLogService.error( "Returned Dolist error : " + strResponse );
-        }
-
-        return strResponse;
+        return dlhttpaccess.doPut( strUrl, jsonParams, mapHeaders );
     }
 
     private Map<String, String> constructHeader( )
@@ -482,31 +454,6 @@ public class DolistAPI
         mapHeader.put( MARK_HEADER_ACCEPT_LANGUAGE, CONSTANTE_HEADER_ACCEPT_LANGUAGE );
 
         return mapHeader;
-    }
-
-    /**
-     * Stringify httpResponse
-     * 
-     * @param httpResponse
-     * @return the response as string
-     * @throws IOException
-     */
-    private String httpToStrResponse( HttpResponse httpResponse ) throws IOException
-    {
-        StringBuilder strResponse = new StringBuilder( );
-
-        // Get response data in string
-        if ( httpResponse != null && httpResponse.getEntity( ) != null && httpResponse.getEntity( ).getContent( ) != null )
-        {
-            BufferedReader bufferedreader = new BufferedReader( new InputStreamReader( httpResponse.getEntity( ).getContent( ) ) );
-            String line = "";
-            while ( ( line = bufferedreader.readLine( ) ) != null )
-            {
-                strResponse.append( line );
-            }
-        }
-
-        return strResponse.toString( );
     }
 
 }
