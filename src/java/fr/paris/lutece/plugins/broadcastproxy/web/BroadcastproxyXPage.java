@@ -35,12 +35,15 @@ package fr.paris.lutece.plugins.broadcastproxy.web;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
+import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
 import fr.paris.lutece.portal.service.util.AppLogService;
@@ -48,6 +51,7 @@ import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.xpage.MVCApplication;
 import fr.paris.lutece.portal.util.mvc.xpage.annotations.Controller;
+import fr.paris.lutece.portal.web.l10n.LocaleService;
 import fr.paris.lutece.portal.web.xpages.XPage;
 import fr.paris.lutece.util.json.ErrorJsonResponse;
 import fr.paris.lutece.util.json.JsonResponse;
@@ -69,6 +73,9 @@ public class BroadcastproxyXPage extends MVCApplication
     private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
 
     private static final String ACTION_UPDATE_USER_SUBSCRIPTIONS = "updateUserSubscriptions";
+    private static final String ACTION_GET_USER_SUBSCRIPTIONS = "getUserSubscriptions";
+
+    private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
 
     /**
      * Check if the current (front) user is authenticated
@@ -106,6 +113,45 @@ public class BroadcastproxyXPage extends MVCApplication
         {
             return null;
         }
+    }
+
+    /**
+     * Do get user subscriptions using the AJAX mode
+     * 
+     * @param request
+     *            The request
+     * @return
+     */
+    @Action( ACTION_GET_USER_SUBSCRIPTIONS )
+    public XPage doGetUserSubscriptions( HttpServletRequest request )
+    {
+    	ObjectMapper mapper = new ObjectMapper( );
+    	JsonNode userSubscriptionsJsonNode = null;
+
+        String mailUser = getMailUserAuthenticated( request );
+        
+        if ( StringUtils.isBlank( mailUser ) )
+        {
+        	return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
+        }
+        
+        try
+        {
+            BroadcastService broadcastService = BroadcastService.getInstance( );
+            String userSubscriptions = broadcastService.getUserSubscriptionsAsJson( mailUser );       
+            
+            userSubscriptionsJsonNode = mapper.readTree( userSubscriptions );
+        }
+        catch( Exception e )
+        {
+            addInfo( I18nService.getLocalizedString( PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS, LocaleService.getDefault( ) ) );
+            AppLogService.error( e.getMessage( ) );
+            return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( e.getMessage( ) ) ) );
+        }
+       
+		XPage xpage =  responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( userSubscriptionsJsonNode ) ) );
+		
+        return xpage;
     }
 
     /**

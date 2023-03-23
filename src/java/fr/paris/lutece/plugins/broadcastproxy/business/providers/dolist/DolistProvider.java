@@ -38,6 +38,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -73,8 +74,9 @@ public class DolistProvider implements IBroadcastProvider
     private static final String JSON_NODE_SUB_SUBSCRIBED = AppPropertiesService.getProperty( "dolist.jsonNode.sub.Subscribed" );
     private static final String JSON_NODE_SUB_UNSUBSCRIBED = AppPropertiesService.getProperty( "dolist.jsonNode.sub.Unsubscribed" );
 
-    private static final String CONSTANTE_OPERATION_MODE_ADD = AppPropertiesService.getProperty( "dolist.CONSTANTE_OPERATION_MODE_ADD" );
-    private static final String CONSTANTE_OPERATION_MODE_DELETE = AppPropertiesService.getProperty( "dolist.CONSTANTE_OPERATION_MODE_DELETE" );
+    private static final String CONSTANT_OPERATION_MODE_ADD = AppPropertiesService.getProperty( "dolist.CONSTANTE_OPERATION_MODE_ADD" );
+    private static final String CONSTANT_OPERATION_MODE_DELETE = AppPropertiesService.getProperty( "dolist.CONSTANTE_OPERATION_MODE_DELETE" );
+    private static final String CONSTANT_SUB_DESCRIPTION_PREFIX = AppPropertiesService.getProperty( "subscription.description.CONSTANT_PREFIX" );
 
     // instance variables
     private DolistAPI _dolistAPI;
@@ -86,8 +88,9 @@ public class DolistProvider implements IBroadcastProvider
 
     /**
      * Constructor
+     * @throws Exception 
      */
-    public DolistProvider( )
+    public DolistProvider( ) throws Exception
     {
         _dolistAPI = new DolistAPI( );
         initMapIdName( );
@@ -171,12 +174,12 @@ public class DolistProvider implements IBroadcastProvider
             // Update Dolist Interests
             if ( !interestsToAdd.isEmpty( ) )
             {
-                _dolistAPI.updateInterests( userId, interestsToAdd, CONSTANTE_OPERATION_MODE_ADD );
+                _dolistAPI.updateInterests( userId, interestsToAdd, CONSTANT_OPERATION_MODE_ADD );
             }
 
             if ( !interestsToDelete.isEmpty( ) )
             {
-                _dolistAPI.updateInterests( userId, interestsToDelete, CONSTANTE_OPERATION_MODE_DELETE );
+                _dolistAPI.updateInterests( userId, interestsToDelete, CONSTANT_OPERATION_MODE_DELETE );
             }
 
         }
@@ -226,6 +229,30 @@ public class DolistProvider implements IBroadcastProvider
 
         return subscriptionViewOrder;
     }
+    
+    public Map<String, List<Subscription>> getOrderedSubscriptions( Map<String, List<Subscription>> subscriptions )
+    {
+    	Map<String, List<Subscription>> ordredSubscriptions= new HashMap<String, List<Subscription>>();
+    	
+    	if (  subscriptions != null && !subscriptions.isEmpty() )
+        {
+    		List<String> subscriptionViewOrder = getSubscriptionViewOrder( );
+        	
+    	    for (String orderedSubscriptionId : subscriptionViewOrder)
+    	    {
+    			for ( Map.Entry<String, List<Subscription>> subscriptionsList : subscriptions.entrySet() )
+    	        {               			
+    				if (subscriptionsList.getKey() != null && subscriptionsList.getKey().equals(orderedSubscriptionId))
+    	    		{
+    					ordredSubscriptions.put(subscriptionsList.getKey(), subscriptionsList.getValue());
+    	    		}
+    	        }
+    	    }
+        }
+    	
+    	return ordredSubscriptions;    	
+    }
+	    		
 
     public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsByGroup( String jsonUserDolistSubscriptions, String userId ) throws Exception
     {
@@ -234,7 +261,7 @@ public class DolistProvider implements IBroadcastProvider
         Map<String, List<String>> allDolistSubscriptionsNamesByGroup = new HashMap<String, List<String>>( );
         Map<String, List<Subscription>> userNewsletters = new HashMap<String, List<Subscription>>( );
         Map<String, List<Subscription>> userAlerts = new HashMap<String, List<Subscription>>( );
-
+      
         try
         {
             // Build list of user subscriptions and interests names
@@ -256,7 +283,7 @@ public class DolistProvider implements IBroadcastProvider
                         sub.setUserId( userId );
                         sub.setName( name );
                         sub.setId( name.trim( ).replace( " ", "_" ) );
-
+                        
                         if ( userSubscriptionNamesList.contains( name ) )
                             sub.setActive( true );
                         else
@@ -290,7 +317,7 @@ public class DolistProvider implements IBroadcastProvider
                 }
             }
 
-            userSubscriptions.put( Constants.TYPE_NEWSLETTER, userNewsletters );
+            userSubscriptions.put( Constants.TYPE_NEWSLETTER, getOrderedSubscriptions( userNewsletters ) );
             userSubscriptions.put( Constants.TYPE_ALERT, userAlerts );
         }
         catch( Exception e )
@@ -417,27 +444,76 @@ public class DolistProvider implements IBroadcastProvider
     private String buildUserSubscriptionsJson( Map<String, Map<String, List<Subscription>>> userSubscriptions ) throws IOException
     {
         ObjectMapper mapper = new ObjectMapper( );
-        String jsonSubscriptions = StringUtils.EMPTY;
-        List<String> jsonSubByGrList = new ArrayList<String>( );
+
+        List<LinkedHashMap<String, Object>> subscriptionGroupList = new ArrayList<LinkedHashMap<String, Object>>();
+        Map<String, List<LinkedHashMap<String, Object>>> allSubscriptions = new HashMap<String, List<LinkedHashMap<String, Object>>>();
+        
+        Map<String, String> subscriptionsDescription = getSubscriptionsDescription( );
 
         for ( Map.Entry<String, Map<String, List<Subscription>>> subscriptionsByGroup : userSubscriptions.entrySet( ) )
         {
             if ( subscriptionsByGroup.getKey( ) != null )
             {
-                for ( Map.Entry<String, List<Subscription>> subscriptionsList : subscriptionsByGroup.getValue( ).entrySet( ) )
-                {
-                    String jsonSubList = mapper.writeValueAsString( subscriptionsList.getValue( ) );
-
-                    String jsonSubGr = "{\"groupName\":" + subscriptionsByGroup.getKey( ) + ",\"subscriptionsList\":" + jsonSubList + "}";
-
-                    jsonSubByGrList.add( jsonSubGr );
+            	String groupDescription = StringUtils.EMPTY ;
+            	LinkedHashMap<String, Object> subscriptionGroup = new LinkedHashMap<String, Object>();     
+                List<LinkedHashMap<String, Object>> groupSubscriptionsList = new ArrayList<LinkedHashMap<String, Object>>();                
+            	
+        		for ( Map.Entry<String, List<Subscription>> sub : subscriptionsByGroup.getValue( ).entrySet( ) )
+                {    
+                    LinkedHashMap<String, Object> singleSubscription = new LinkedHashMap<String, Object>();
+                    
+        			for (Subscription subList : sub.getValue())
+	                {  
+        				for (Map.Entry<String, String> description : subscriptionsDescription.entrySet( ))
+                    	{ 
+        					if (description.getKey().equals(subList.getId()))
+	                		{
+	                			subList.setDescription(description.getValue());
+	                			break;
+	                		}
+                    	}        				
+        							 				
+	                }
+        			
+        			singleSubscription.put("subname", sub.getKey());
+        			singleSubscription.put("sublist", sub.getValue());
+        			
+        			groupSubscriptionsList.add(singleSubscription);
                 }
-            }
+        		
+    			for (Map.Entry<String, String> description : subscriptionsDescription.entrySet( ))
+            	{ 
+    				if (description.getKey().equals("Alertes") && subscriptionsByGroup.getKey().equals(Constants.TYPE_ALERT))
+            		{
+            			groupDescription = description.getValue();
+            			break;
+            		}
+            	}
+
+    			subscriptionGroup.put("groupname", subscriptionsByGroup.getKey( ));
+    			subscriptionGroup.put("description", groupDescription);
+    			subscriptionGroup.put("subscriptions", groupSubscriptionsList);
+    			
+    			subscriptionGroupList.add(subscriptionGroup);    			
+			}
+        }
+        
+        allSubscriptions.put("user_subscriptions", subscriptionGroupList);
+
+        return mapper.writeValueAsString(allSubscriptions);
+    }
+
+    private Map<String, String> getSubscriptionsDescription( )
+    {
+        Map<String, String> descriptions = new HashMap<String, String>( );
+
+        List<String> descriptionsList = AppPropertiesService.getKeys( CONSTANT_SUB_DESCRIPTION_PREFIX );
+        for ( String description : descriptionsList )
+        {
+            descriptions.put( description.substring( CONSTANT_SUB_DESCRIPTION_PREFIX.length( ) + 1 ), AppPropertiesService.getProperty( description ) );
         }
 
-        jsonSubscriptions = "{\"userSubscriptions\":" + mapper.writeValueAsString( jsonSubByGrList ) + "}";
-
-        return jsonSubscriptions;
+        return descriptions;
     }
 
     public Map<String, Boolean> getUserSubscribtionsToUpdate( String jsonSubscriptions ) throws Exception
@@ -479,8 +555,9 @@ public class DolistProvider implements IBroadcastProvider
 
     /**
      * init
+     * @throws Exception 
      */
-    private void initMapIdName( )
+    private void initMapIdName( ) throws Exception
     {
         ObjectMapper mapper = new ObjectMapper( );
 

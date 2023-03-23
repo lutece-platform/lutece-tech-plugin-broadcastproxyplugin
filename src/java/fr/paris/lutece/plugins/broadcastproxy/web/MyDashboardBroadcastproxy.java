@@ -43,14 +43,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 
-import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import fr.paris.lutece.plugins.mydashboard.service.MyDashboardComponent;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
 import fr.paris.lutece.portal.service.template.AppTemplateService;
-import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.utils.MVCMessage;
 import fr.paris.lutece.portal.web.l10n.LocaleService;
@@ -66,15 +64,11 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 
     // PROPERTIES 
     private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.component.broadcastproxy.description";
-    private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
 
     // Markers
-    private static final String MARK_USER_SUBSCRIPTIONS = "user_subscriptions";
-    private static final String MARK_SUBSCRIPTION_VIEW_ORDER = "subscriptions_order";
     private static final String MARK_BROADCASTPROXY = "broadcastproxy";
     private static final String MARK_LUTECE_USER = "user";
     private static final String MARK_INFOS = "infos";
-    private static final String MARK_SUBSCRIPTIONS_DESCRIPTION = "descriptions";
 
     // instance variables
     private List<ErrorMessage> _listInfos = new ArrayList<>( );
@@ -82,8 +76,6 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     // constants
     private static final String MYDASHBOARD_BROADCASTPROXY_ID = "broadcastproxy.myDashboard";
     private static final String KEY_USER_INFO_MAIL = "broadcastproxy.userInfoKeys.mail";
-
-    private static final String SUB_DESCRIPTION_CONSTANT_PREFIX = AppPropertiesService.getProperty( "subscription.description.CONSTANT_PREFIX" );
 
     // Templates
     private static final String TEMPLATE_DASHBOARD = "skin/plugins/mydashboard/modules/broadcastproxy/broadcastproxy_mydashboard.html";
@@ -96,9 +88,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     {
         _listInfos.clear( );
         Map<String, Object> model = new HashMap<>( );
-        Map<String, String> subscriptionsDescription = new HashMap<String, String>( );
-        List<String> subscriptionViewOrder = new ArrayList<String>( );
-
+        
         if ( SecurityService.isAuthenticationEnable( ) )
         {
             _luteceUser = SecurityService.getInstance( ).getRegisteredUser( request );
@@ -110,8 +100,6 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 
         if ( _luteceUser != null )
         {
-            Map<String, Map<String, List<Subscription>>> userSubscriptions = new HashMap<>( );
-
             String userMail = _luteceUser.getEmail( );
             if ( StringUtils.isBlank( userMail ) )
             {
@@ -121,29 +109,11 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
                     userMail = _luteceUser.getUserInfo( mailUserInfoKey );
                 }
             }
-
-            try
-            {
-                BroadcastService broadcastService = BroadcastService.getInstance( );
-
-                userSubscriptions = broadcastService.getUserSubscriptionsAsList( userMail );
-
-                subscriptionViewOrder = broadcastService.getSubscriptionViewOrder( );
-
-                subscriptionsDescription = getSubscriptionsDescription( );
-
-                model.put( MARK_BROADCASTPROXY, broadcastService.getName( ) );
-            }
-            catch( Exception e )
-            {
-                addInfo( I18nService.getLocalizedString( PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS, LocaleService.getDefault( ) ) );
-                AppLogService.error( e.getMessage( ) );
-            }
-
-            model.put( MARK_USER_SUBSCRIPTIONS, userSubscriptions );
-            model.put( MARK_SUBSCRIPTION_VIEW_ORDER, subscriptionViewOrder );
+           
+            BroadcastService broadcastService = BroadcastService.getInstance( );
+            model.put( MARK_BROADCASTPROXY, broadcastService.getName( ) );
+            
             model.put( MARK_INFOS, _listInfos );
-            model.put( MARK_SUBSCRIPTIONS_DESCRIPTION, subscriptionsDescription );
         }
 
         HtmlTemplate t = AppTemplateService.getTemplate( TEMPLATE_DASHBOARD, LocaleService.getUserSelectedLocale( request ), model );
@@ -161,19 +131,6 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     public String getComponentDescription( Locale locale )
     {
         return I18nService.getLocalizedString( PROPERTY_MYDASHBOARD_DESCRIPTION, locale );
-    }
-
-    private Map<String, String> getSubscriptionsDescription( )
-    {
-        Map<String, String> descriptions = new HashMap<String, String>( );
-
-        List<String> descriptionsList = AppPropertiesService.getKeys( SUB_DESCRIPTION_CONSTANT_PREFIX );
-        for ( String description : descriptionsList )
-        {
-            descriptions.put( description.substring( SUB_DESCRIPTION_CONSTANT_PREFIX.length( ) + 1 ), AppPropertiesService.getProperty( description ) );
-        }
-
-        return descriptions;
     }
 
     /**

@@ -86,8 +86,7 @@ public class DolistAPI
 
     private static final String CONSTANTE_REQUEST_BODY_CONTACT = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_CONTACT" );
     private static final String CONSTANTE_REQUEST_BODY_QUERY = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_QUERY" );
-    private static final String CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST = AppPropertiesService
-            .getProperty( "dolist.CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST" );
+    private static final String CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST" );
     private static final String CONSTANTE_REQUEST_BODY_INTERESTS_LIST = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_INTERESTS_LIST" );
 
     // Other constants
@@ -95,6 +94,7 @@ public class DolistAPI
     private static final String JSON_NODE_USER_ID = AppPropertiesService.getProperty( "dolist.jsonNode.user.ID" );
     private static final String JSON_NODE_SEARCH_VALUE = AppPropertiesService.getProperty( "dolist.jsonNode.SearchValue" );
     private static final String JSON_NODE_SEARCH_FIELD_ID_LIST = AppPropertiesService.getProperty( "dolist.jsonNode.SearchFieldIDList" );
+    private static final String JSON_NODE_OUTPUT_FIELD_ID_LIST = AppPropertiesService.getProperty( "dolist.jsonNode.OutputFieldIDList" );
     private static final String JSON_NODE_FIELD_LIST = AppPropertiesService.getProperty( "dolist.jsonNode.FieldList" );
 
     // Instance variables
@@ -106,8 +106,9 @@ public class DolistAPI
      * 
      * @param userEmail
      * @return Dolist contact id
+     * @throws Exception 
      */
-    public String getDolistContactId( String userEmail )
+    public String getDolistContactId( String userEmail ) throws Exception
     {
         if ( userEmail == null )
             return null;
@@ -118,6 +119,7 @@ public class DolistAPI
         ObjectMapper mapper = new ObjectMapper( );
         Map<String, Object> queryParams = new HashMap<>( );
         List<Integer> listFieldId = new ArrayList<>( );
+        List<Integer> listOutputFieldId = new ArrayList<>( );
         String strResponse = null;
         String strContactId = "";
 
@@ -130,8 +132,10 @@ public class DolistAPI
 
             // Set request parameters
             listFieldId.add( Integer.parseInt( CONSTANTE_EMAIL_FIELD_ID ) );
+            listOutputFieldId.add( Integer.parseInt( CONSTANTE_EMAIL_FIELD_ID ) ) ;
             queryParams.put( JSON_NODE_SEARCH_VALUE, userEmail );
             queryParams.put( JSON_NODE_SEARCH_FIELD_ID_LIST, listFieldId );
+            queryParams.put( JSON_NODE_OUTPUT_FIELD_ID_LIST, listOutputFieldId );
 
             String strParamsInJson = "{ \"" + CONSTANTE_REQUEST_BODY_QUERY + "\":" + mapper.writeValueAsString( queryParams ) + "}";
 
@@ -140,11 +144,15 @@ public class DolistAPI
 
             // Get ContactId from response
             JsonNode nodes = mapper.readTree( strResponse );
-
+            
             if ( Integer.parseInt( nodes.get( "Count" ).asText( ) ) == 1 )
             {
                 strContactId = nodes.get( JSON_NODE_ITEMLIST ).findValue( JSON_NODE_USER_ID ).asText( );
-
+                if (strContactId == null || strContactId.isEmpty())
+                {
+                    throw new Exception();
+                }
+                
                 // set instance variables
                 _userEmail = userEmail;
                 _contactId = strContactId;
@@ -156,11 +164,11 @@ public class DolistAPI
                 }
 
         }
-        catch( IOException | HttpAccessException e )
+        catch( Exception e )
         {
-            String strError = "Error occured while getting Contact ID from '" + strUrl + "' : ";
+            String strError = "Error occured while getting Contact ID from '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
-            return null;
+            throw new Exception(strError);
         }
 
         return strContactId;
@@ -223,8 +231,9 @@ public class DolistAPI
      * 
      * @param typeSubscription
      * @return json
+     * @throws Exception 
      */
-    public String getAllSubscriptions( String typeSubscription )
+    public String getAllSubscriptions( String typeSubscription ) throws Exception
     {
         String strResponse = StringUtils.EMPTY;
         String strUrl = StringUtils.EMPTY;
@@ -250,8 +259,9 @@ public class DolistAPI
         }
         catch( IOException e )
         {
-            String strError = "Error occured while getting the list of subscriptions names '" + strUrl + "' : ";
+            String strError = "Error occured while getting the list of subscriptions names '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
+            throw new Exception(strError);
         }
 
         return strResponse;
@@ -262,8 +272,9 @@ public class DolistAPI
      * 
      * @param userEmail
      * @return json
+     * @throws Exception 
      */
-    public String getUserSubscriptions( String userEmail, String typeSubscription )
+    public String getUserSubscriptions( String userEmail, String typeSubscription ) throws Exception
     {
         String strResponse = StringUtils.EMPTY;
         String strUrl = StringUtils.EMPTY;
@@ -293,8 +304,9 @@ public class DolistAPI
         }
         catch( IOException e )
         {
-            String strError = "Error occured while getting Contact subscriptions list from '" + strUrl + "' : ";
+            String strError = "Error occured while getting Contact subscriptions list from '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
+            throw new Exception(strError);
         }
 
         return strResponse;
@@ -373,9 +385,9 @@ public class DolistAPI
         }
         catch( IOException e )
         {
-            String strError = "Error connecting to '" + strUrl + "' : ";
+            String strError = "Error connecting to '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
-            return null;
+            throw new Exception(strError);
         }
 
         return response;

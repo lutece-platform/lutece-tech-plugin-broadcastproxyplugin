@@ -78,7 +78,6 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
     private static final String PROPERTY_PAGE_TITLE_BROADCASTPROXY = "broadcastproxy.pageTitle";
 
     // Markers
-    private static final String MARK_SUBSCRIPTION_JSON = "subscription_json";
     private static final String MARK_SUBSCRIPTION_LIST = "subscription_list";
     private static final String MARK_SUBSCRIPTION_TYPE_LIST = "subscription_types";
     private static final String MARK_SUBSCRIPTION_FEED_LIST = "subscription_feeds";
@@ -130,8 +129,8 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                 List<Subscription> list = null;
                 model.put( MARK_SUBSCRIPTION_LIST, list );
 
-                String json = BroadcastService.getInstance( ).getUserSubscriptionsAsJson( userId );
-                model.put( MARK_SUBSCRIPTION_JSON, json );
+                //String json = BroadcastService.getInstance( ).getUserSubscriptionsAsJson( userId );
+                //model.put( MARK_SUBSCRIPTION_JSON, json );
 
                 model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
                 model.put( MARK_LAST_USER_ID, userId );
