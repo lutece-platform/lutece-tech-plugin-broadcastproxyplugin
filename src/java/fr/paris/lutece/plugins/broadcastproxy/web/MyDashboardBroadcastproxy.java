@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
      */
     private static final long serialVersionUID = 1L;
 
-    // PROPERTIES 
+    // PROPERTIES
     private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.component.broadcastproxy.description";
 
     // Markers
@@ -88,7 +88,7 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
     {
         _listInfos.clear( );
         Map<String, Object> model = new HashMap<>( );
-        
+
         if ( SecurityService.isAuthenticationEnable( ) )
         {
             _luteceUser = SecurityService.getInstance( ).getRegisteredUser( request );
@@ -109,10 +109,10 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
                     userMail = _luteceUser.getUserInfo( mailUserInfoKey );
                 }
             }
-           
+
             BroadcastService broadcastService = BroadcastService.getInstance( );
             model.put( MARK_BROADCASTPROXY, broadcastService.getName( ) );
-            
+
             model.put( MARK_INFOS, _listInfos );
         }
 

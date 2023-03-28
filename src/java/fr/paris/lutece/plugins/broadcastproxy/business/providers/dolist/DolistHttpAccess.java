@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,7 +133,7 @@ public class DolistHttpAccess
             {
                 AppLogService.error( "Returned Dolist error : " + strResponse );
             }
-            
+
             // Get response in String
             strResponse = httpToStrResponse( httpResponse );
         }
@@ -178,7 +178,7 @@ public class DolistHttpAccess
             RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
             method.setConfig( config );
 
-            httpResponse = client.execute( method );            
+            httpResponse = client.execute( method );
 
             // If error
             if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
@@ -200,7 +200,7 @@ public class DolistHttpAccess
             // Release the connection.
             method.releaseConnection( );
         }
-        
+
         return strResponse;
     }
 
@@ -244,7 +244,6 @@ public class DolistHttpAccess
 
         return httpResponse;
     }
-    
 
     /**
      * Stringify httpResponse

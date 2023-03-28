@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,21 +125,21 @@ public class BroadcastproxyXPage extends MVCApplication
     @Action( ACTION_GET_USER_SUBSCRIPTIONS )
     public XPage doGetUserSubscriptions( HttpServletRequest request )
     {
-    	ObjectMapper mapper = new ObjectMapper( );
-    	JsonNode userSubscriptionsJsonNode = null;
+        ObjectMapper mapper = new ObjectMapper( );
+        JsonNode userSubscriptionsJsonNode = null;
 
         String mailUser = getMailUserAuthenticated( request );
-        
+
         if ( StringUtils.isBlank( mailUser ) )
         {
-        	return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
+            return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
         }
-        
+
         try
         {
             BroadcastService broadcastService = BroadcastService.getInstance( );
-            String userSubscriptions = broadcastService.getUserSubscriptionsAsJson( mailUser );       
-            
+            String userSubscriptions = broadcastService.getUserSubscriptionsAsJson( mailUser );
+
             userSubscriptionsJsonNode = mapper.readTree( userSubscriptions );
         }
         catch( Exception e )
@@ -148,9 +148,9 @@ public class BroadcastproxyXPage extends MVCApplication
             AppLogService.error( e.getMessage( ) );
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( e.getMessage( ) ) ) );
         }
-       
-		XPage xpage =  responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( userSubscriptionsJsonNode ) ) );
-		
+
+        XPage xpage = responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( userSubscriptionsJsonNode ) ) );
+
         return xpage;
     }
 

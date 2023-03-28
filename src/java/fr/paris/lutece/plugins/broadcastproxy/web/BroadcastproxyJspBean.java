@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,8 +129,8 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
                 List<Subscription> list = null;
                 model.put( MARK_SUBSCRIPTION_LIST, list );
 
-                //String json = BroadcastService.getInstance( ).getUserSubscriptionsAsJson( userId );
-                //model.put( MARK_SUBSCRIPTION_JSON, json );
+                // String json = BroadcastService.getInstance( ).getUserSubscriptionsAsJson( userId );
+                // model.put( MARK_SUBSCRIPTION_JSON, json );
 
                 model.put( MARK_BROADCASTPROXY, BroadcastService.getInstance( ).getName( ) );
                 model.put( MARK_LAST_USER_ID, userId );

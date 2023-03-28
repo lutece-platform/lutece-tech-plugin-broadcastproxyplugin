@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,8 @@ public class DolistAPI
 
     private static final String CONSTANTE_REQUEST_BODY_CONTACT = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_CONTACT" );
     private static final String CONSTANTE_REQUEST_BODY_QUERY = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_QUERY" );
-    private static final String CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST" );
+    private static final String CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST = AppPropertiesService
+            .getProperty( "dolist.CONSTANTE_REQUEST_BODY_SUBSCRIPTIONS_LIST" );
     private static final String CONSTANTE_REQUEST_BODY_INTERESTS_LIST = AppPropertiesService.getProperty( "dolist.CONSTANTE_REQUEST_BODY_INTERESTS_LIST" );
 
     // Other constants
@@ -106,7 +107,7 @@ public class DolistAPI
      * 
      * @param userEmail
      * @return Dolist contact id
-     * @throws Exception 
+     * @throws Exception
      */
     public String getDolistContactId( String userEmail ) throws Exception
     {
@@ -132,7 +133,7 @@ public class DolistAPI
 
             // Set request parameters
             listFieldId.add( Integer.parseInt( CONSTANTE_EMAIL_FIELD_ID ) );
-            listOutputFieldId.add( Integer.parseInt( CONSTANTE_EMAIL_FIELD_ID ) ) ;
+            listOutputFieldId.add( Integer.parseInt( CONSTANTE_EMAIL_FIELD_ID ) );
             queryParams.put( JSON_NODE_SEARCH_VALUE, userEmail );
             queryParams.put( JSON_NODE_SEARCH_FIELD_ID_LIST, listFieldId );
             queryParams.put( JSON_NODE_OUTPUT_FIELD_ID_LIST, listOutputFieldId );
@@ -144,15 +145,15 @@ public class DolistAPI
 
             // Get ContactId from response
             JsonNode nodes = mapper.readTree( strResponse );
-            
+
             if ( Integer.parseInt( nodes.get( "Count" ).asText( ) ) == 1 )
             {
                 strContactId = nodes.get( JSON_NODE_ITEMLIST ).findValue( JSON_NODE_USER_ID ).asText( );
-                if (strContactId == null || strContactId.isEmpty())
+                if ( strContactId == null || strContactId.isEmpty( ) )
                 {
-                    throw new Exception();
+                    throw new Exception( );
                 }
-                
+
                 // set instance variables
                 _userEmail = userEmail;
                 _contactId = strContactId;
@@ -168,7 +169,7 @@ public class DolistAPI
         {
             String strError = "Error occured while getting Contact ID from '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
-            throw new Exception(strError);
+            throw new Exception( strError );
         }
 
         return strContactId;
@@ -231,7 +232,7 @@ public class DolistAPI
      * 
      * @param typeSubscription
      * @return json
-     * @throws Exception 
+     * @throws Exception
      */
     public String getAllSubscriptions( String typeSubscription ) throws Exception
     {
@@ -261,7 +262,7 @@ public class DolistAPI
         {
             String strError = "Error occured while getting the list of subscriptions names '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
-            throw new Exception(strError);
+            throw new Exception( strError );
         }
 
         return strResponse;
@@ -272,7 +273,7 @@ public class DolistAPI
      * 
      * @param userEmail
      * @return json
-     * @throws Exception 
+     * @throws Exception
      */
     public String getUserSubscriptions( String userEmail, String typeSubscription ) throws Exception
     {
@@ -306,7 +307,7 @@ public class DolistAPI
         {
             String strError = "Error occured while getting Contact subscriptions list from '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
-            throw new Exception(strError);
+            throw new Exception( strError );
         }
 
         return strResponse;
@@ -387,7 +388,7 @@ public class DolistAPI
         {
             String strError = "Error connecting to '" + strUrl + "' : " + e.getMessage( );
             AppLogService.error( strError + e.getMessage( ), e );
-            throw new Exception(strError);
+            throw new Exception( strError );
         }
 
         return response;

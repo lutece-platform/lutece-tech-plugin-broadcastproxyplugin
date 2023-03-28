@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,8 @@ public class DolistProvider implements IBroadcastProvider
 
     /**
      * Constructor
-     * @throws Exception 
+     * 
+     * @throws Exception
      */
     public DolistProvider( ) throws Exception
     {
@@ -229,30 +230,29 @@ public class DolistProvider implements IBroadcastProvider
 
         return subscriptionViewOrder;
     }
-    
+
     public Map<String, List<Subscription>> getOrderedSubscriptions( Map<String, List<Subscription>> subscriptions )
     {
-    	Map<String, List<Subscription>> ordredSubscriptions= new HashMap<String, List<Subscription>>();
-    	
-    	if (  subscriptions != null && !subscriptions.isEmpty() )
+        Map<String, List<Subscription>> ordredSubscriptions = new HashMap<String, List<Subscription>>( );
+
+        if ( subscriptions != null && !subscriptions.isEmpty( ) )
         {
-    		List<String> subscriptionViewOrder = getSubscriptionViewOrder( );
-        	
-    	    for (String orderedSubscriptionId : subscriptionViewOrder)
-    	    {
-    			for ( Map.Entry<String, List<Subscription>> subscriptionsList : subscriptions.entrySet() )
-    	        {               			
-    				if (subscriptionsList.getKey() != null && subscriptionsList.getKey().equals(orderedSubscriptionId))
-    	    		{
-    					ordredSubscriptions.put(subscriptionsList.getKey(), subscriptionsList.getValue());
-    	    		}
-    	        }
-    	    }
+            List<String> subscriptionViewOrder = getSubscriptionViewOrder( );
+
+            for ( String orderedSubscriptionId : subscriptionViewOrder )
+            {
+                for ( Map.Entry<String, List<Subscription>> subscriptionsList : subscriptions.entrySet( ) )
+                {
+                    if ( subscriptionsList.getKey( ) != null && subscriptionsList.getKey( ).equals( orderedSubscriptionId ) )
+                    {
+                        ordredSubscriptions.put( subscriptionsList.getKey( ), subscriptionsList.getValue( ) );
+                    }
+                }
+            }
         }
-    	
-    	return ordredSubscriptions;    	
+
+        return ordredSubscriptions;
     }
-	    		
 
     public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsByGroup( String jsonUserDolistSubscriptions, String userId ) throws Exception
     {
@@ -261,7 +261,7 @@ public class DolistProvider implements IBroadcastProvider
         Map<String, List<String>> allDolistSubscriptionsNamesByGroup = new HashMap<String, List<String>>( );
         Map<String, List<Subscription>> userNewsletters = new HashMap<String, List<Subscription>>( );
         Map<String, List<Subscription>> userAlerts = new HashMap<String, List<Subscription>>( );
-      
+
         try
         {
             // Build list of user subscriptions and interests names
@@ -283,7 +283,7 @@ public class DolistProvider implements IBroadcastProvider
                         sub.setUserId( userId );
                         sub.setName( name );
                         sub.setId( name.trim( ).replace( " ", "_" ) );
-                        
+
                         if ( userSubscriptionNamesList.contains( name ) )
                             sub.setActive( true );
                         else
@@ -370,7 +370,7 @@ public class DolistProvider implements IBroadcastProvider
                         }
                     }
 
-                    Collections.sort( SubscriptionsNamesList, Collator.getInstance(Locale.FRENCH) );
+                    Collections.sort( SubscriptionsNamesList, Collator.getInstance( Locale.FRENCH ) );
 
                     SubscriptionsName.put( groupName, SubscriptionsNamesList );
                 }
@@ -445,62 +445,62 @@ public class DolistProvider implements IBroadcastProvider
     {
         ObjectMapper mapper = new ObjectMapper( );
 
-        List<LinkedHashMap<String, Object>> subscriptionGroupList = new ArrayList<LinkedHashMap<String, Object>>();
-        Map<String, List<LinkedHashMap<String, Object>>> allSubscriptions = new HashMap<String, List<LinkedHashMap<String, Object>>>();
-        
+        List<LinkedHashMap<String, Object>> subscriptionGroupList = new ArrayList<LinkedHashMap<String, Object>>( );
+        Map<String, List<LinkedHashMap<String, Object>>> allSubscriptions = new HashMap<String, List<LinkedHashMap<String, Object>>>( );
+
         Map<String, String> subscriptionsDescription = getSubscriptionsDescription( );
 
         for ( Map.Entry<String, Map<String, List<Subscription>>> subscriptionsByGroup : userSubscriptions.entrySet( ) )
         {
             if ( subscriptionsByGroup.getKey( ) != null )
             {
-            	String groupDescription = StringUtils.EMPTY ;
-            	LinkedHashMap<String, Object> subscriptionGroup = new LinkedHashMap<String, Object>();     
-                List<LinkedHashMap<String, Object>> groupSubscriptionsList = new ArrayList<LinkedHashMap<String, Object>>();                
-            	
-        		for ( Map.Entry<String, List<Subscription>> sub : subscriptionsByGroup.getValue( ).entrySet( ) )
-                {    
-                    LinkedHashMap<String, Object> singleSubscription = new LinkedHashMap<String, Object>();
-                    
-        			for (Subscription subList : sub.getValue())
-	                {  
-        				for (Map.Entry<String, String> description : subscriptionsDescription.entrySet( ))
-                    	{ 
-        					if (description.getKey().equals(subList.getId()))
-	                		{
-	                			subList.setDescription(description.getValue());
-	                			break;
-	                		}
-                    	}        				
-        							 				
-	                }
-        			
-        			singleSubscription.put("subname", sub.getKey());
-        			singleSubscription.put("sublist", sub.getValue());
-        			
-        			groupSubscriptionsList.add(singleSubscription);
+                String groupDescription = StringUtils.EMPTY;
+                LinkedHashMap<String, Object> subscriptionGroup = new LinkedHashMap<String, Object>( );
+                List<LinkedHashMap<String, Object>> groupSubscriptionsList = new ArrayList<LinkedHashMap<String, Object>>( );
+
+                for ( Map.Entry<String, List<Subscription>> sub : subscriptionsByGroup.getValue( ).entrySet( ) )
+                {
+                    LinkedHashMap<String, Object> singleSubscription = new LinkedHashMap<String, Object>( );
+
+                    for ( Subscription subList : sub.getValue( ) )
+                    {
+                        for ( Map.Entry<String, String> description : subscriptionsDescription.entrySet( ) )
+                        {
+                            if ( description.getKey( ).equals( subList.getId( ) ) )
+                            {
+                                subList.setDescription( description.getValue( ) );
+                                break;
+                            }
+                        }
+
+                    }
+
+                    singleSubscription.put( "subname", sub.getKey( ) );
+                    singleSubscription.put( "sublist", sub.getValue( ) );
+
+                    groupSubscriptionsList.add( singleSubscription );
                 }
-        		
-    			for (Map.Entry<String, String> description : subscriptionsDescription.entrySet( ))
-            	{ 
-    				if (description.getKey().equals("Alertes") && subscriptionsByGroup.getKey().equals(Constants.TYPE_ALERT))
-            		{
-            			groupDescription = description.getValue();
-            			break;
-            		}
-            	}
 
-    			subscriptionGroup.put("groupname", subscriptionsByGroup.getKey( ));
-    			subscriptionGroup.put("description", groupDescription);
-    			subscriptionGroup.put("subscriptions", groupSubscriptionsList);
-    			
-    			subscriptionGroupList.add(subscriptionGroup);    			
-			}
+                for ( Map.Entry<String, String> description : subscriptionsDescription.entrySet( ) )
+                {
+                    if ( description.getKey( ).equals( "Alertes" ) && subscriptionsByGroup.getKey( ).equals( Constants.TYPE_ALERT ) )
+                    {
+                        groupDescription = description.getValue( );
+                        break;
+                    }
+                }
+
+                subscriptionGroup.put( "groupname", subscriptionsByGroup.getKey( ) );
+                subscriptionGroup.put( "description", groupDescription );
+                subscriptionGroup.put( "subscriptions", groupSubscriptionsList );
+
+                subscriptionGroupList.add( subscriptionGroup );
+            }
         }
-        
-        allSubscriptions.put("user_subscriptions", subscriptionGroupList);
 
-        return mapper.writeValueAsString(allSubscriptions);
+        allSubscriptions.put( "user_subscriptions", subscriptionGroupList );
+
+        return mapper.writeValueAsString( allSubscriptions );
     }
 
     private Map<String, String> getSubscriptionsDescription( )
@@ -555,7 +555,8 @@ public class DolistProvider implements IBroadcastProvider
 
     /**
      * init
-     * @throws Exception 
+     * 
+     * @throws Exception
      */
     private void initMapIdName( ) throws Exception
     {
