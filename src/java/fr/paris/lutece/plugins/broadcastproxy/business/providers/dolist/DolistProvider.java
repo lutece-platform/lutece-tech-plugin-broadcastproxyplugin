@@ -122,7 +122,9 @@ public class DolistProvider implements IBroadcastProvider
     {
 
         String userDolistSubscriptionsList = _dolistAPI.getUserSubscriptions( userId, DolistConstants.TYPE_SUBSCRIPTION );
-
+        if ( userDolistSubscriptionsList == null || userDolistSubscriptionsList.isEmpty() )
+        	return null;
+        
         Map<String, Map<String, List<Subscription>>> userSubscriptions = getUserSubscriptionsByGroup( userDolistSubscriptionsList, userId );
 
         return userSubscriptions;
@@ -132,7 +134,9 @@ public class DolistProvider implements IBroadcastProvider
     public String getUserSubscriptionsAsJson( String userId ) throws Exception
     {
         Map<String, Map<String, List<Subscription>>> userSubscriptions = getUserSubscriptionsAsList( userId );
-
+        if ( userSubscriptions == null )
+        	return null;
+        
         String jsonUserSubscriptions = buildUserSubscriptionsJson( userSubscriptions );
 
         return jsonUserSubscriptions;
@@ -390,7 +394,7 @@ public class DolistProvider implements IBroadcastProvider
         ObjectMapper mapper = new ObjectMapper( );
         List<String> userSubscriptionNamesList = new ArrayList<String>( );
         List<String> activeSubscriptionsId = new ArrayList<String>( );
-
+        
         try
         {
             // Get list of only active subscriptions

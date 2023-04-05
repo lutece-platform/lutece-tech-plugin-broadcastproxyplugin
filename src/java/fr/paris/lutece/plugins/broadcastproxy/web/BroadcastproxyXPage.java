@@ -139,6 +139,11 @@ public class BroadcastproxyXPage extends MVCApplication
         {
             BroadcastService broadcastService = BroadcastService.getInstance( );
             String userSubscriptions = broadcastService.getUserSubscriptionsAsJson( mailUser );
+            if ( userSubscriptions == null )
+            {
+            	String returnedMsg = "Vos newsletters sont momentanément indisponibles.";
+            	return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( returnedMsg ) ) );
+            }
 
             userSubscriptionsJsonNode = mapper.readTree( userSubscriptions );
         }
