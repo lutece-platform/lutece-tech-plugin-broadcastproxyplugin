@@ -112,7 +112,7 @@ public class DolistAPI
     public String getDolistContactId( String userEmail ) throws Exception
     {
         if ( userEmail == null )
-            return null;
+            return null;        
 
         if ( userEmail.equals( _userEmail ) )
             return _contactId;
@@ -158,11 +158,16 @@ public class DolistAPI
                 _userEmail = userEmail;
                 _contactId = strContactId;
             }
-            else
-                if ( Integer.parseInt( nodes.get( "Count" ).asText( ) ) != 0 ) // There is some accounts with the same email
-                {
-                    return null;
-                }
+            else if ( Integer.parseInt( nodes.get( "Count" ).asText( ) ) > 1 ) // There is some accounts with the same email
+            {
+            	String strError = "There is some accounts with the same email : '" + userEmail;
+                AppLogService.error( strError );
+                return null;
+            }
+            else // There is not account for this user
+            {
+                return "";            	
+            }
 
         }
         catch( Exception e )
@@ -283,6 +288,13 @@ public class DolistAPI
         // Get contact ID
         String idContact = getDolistContactId( userEmail );
 
+        if ( idContact == null )
+        	return null;
+        
+        // if Email (user) does not exist
+        if ( idContact.equals( "" ) )
+        	return "";
+
         try
         {
             if ( typeSubscription.equals( DolistConstants.TYPE_SUBSCRIPTION ) )
@@ -364,7 +376,7 @@ public class DolistAPI
 
         // Get dolist contact ID
         String userDolistId = getDolistContactId( userEmail );
-
+        
         // if Email (user) does not exist ==> Create user
         if ( userDolistId.equals( "" ) )
             userDolistId = addUser( userEmail );

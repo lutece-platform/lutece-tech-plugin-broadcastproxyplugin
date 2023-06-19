@@ -129,9 +129,10 @@ public class DolistHttpAccess
             httpResponse = client.execute( method );
 
             // If error
-            if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+            if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) < 200 
+            		&& httpResponse.getStatusLine( ).getStatusCode( ) >= 300 )
             {
-                AppLogService.error( "Returned Dolist error : " + strResponse );
+                AppLogService.error( "Returned Dolist error code : " + httpResponse.getStatusLine( ).getStatusCode( ) );
             }
 
             // Get response in String
@@ -181,9 +182,10 @@ public class DolistHttpAccess
             httpResponse = client.execute( method );
 
             // If error
-            if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) != 200 )
+            if ( httpResponse != null && httpResponse.getStatusLine( ).getStatusCode( ) < 200 
+            		&& httpResponse.getStatusLine( ).getStatusCode( ) >= 300 )
             {
-                AppLogService.error( "Returned Dolist error : " + strResponse );
+                AppLogService.error( "Returned Dolist error code : " + httpResponse.getStatusLine( ).getStatusCode( ) );
             }
 
             // Get response in String

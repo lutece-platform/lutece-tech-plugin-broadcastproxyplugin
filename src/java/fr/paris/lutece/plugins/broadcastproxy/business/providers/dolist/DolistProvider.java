@@ -120,12 +120,12 @@ public class DolistProvider implements IBroadcastProvider
     @Override
     public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsAsList( String userId ) throws Exception
     {
-
         String userDolistSubscriptionsList = _dolistAPI.getUserSubscriptions( userId, DolistConstants.TYPE_SUBSCRIPTION );
-        if ( userDolistSubscriptionsList == null || userDolistSubscriptionsList.isEmpty() )
+        
+        if ( userDolistSubscriptionsList == null )
         	return null;
         
-        Map<String, Map<String, List<Subscription>>> userSubscriptions = getUserSubscriptionsByGroup( userDolistSubscriptionsList, userId );
+    	Map<String, Map<String, List<Subscription>>> userSubscriptions = getUserSubscriptionsByGroup( userDolistSubscriptionsList, userId );
 
         return userSubscriptions;
     }
@@ -267,7 +267,7 @@ public class DolistProvider implements IBroadcastProvider
         Map<String, List<Subscription>> userAlerts = new HashMap<String, List<Subscription>>( );
 
         try
-        {
+        {        	
             // Build list of user subscriptions and interests names
             userSubscriptionNamesList.addAll( getUserSubscriptionsNamesAsList( jsonUserDolistSubscriptions, DolistConstants.TYPE_SUBSCRIPTION ) );
 
@@ -381,8 +381,8 @@ public class DolistProvider implements IBroadcastProvider
             }
         }
         catch( Exception e )
-        {
-            String strError = "Error occured while getting the list of interests ids and names.";
+        { 
+            String strError = "Error occured while building list of all subscriptions names.";
             AppLogService.error( strError + e.getMessage( ), e );
         }
 
@@ -395,6 +395,9 @@ public class DolistProvider implements IBroadcastProvider
         List<String> userSubscriptionNamesList = new ArrayList<String>( );
         List<String> activeSubscriptionsId = new ArrayList<String>( );
         
+        if (jsonResponse.contentEquals(""))
+        	return userSubscriptionNamesList;
+        
         try
         {
             // Get list of only active subscriptions
@@ -402,12 +405,17 @@ public class DolistProvider implements IBroadcastProvider
             {
                 activeSubscriptionsId.add( subEntry.getKey( ) );
             }
-
+      		
             JsonNode nodes = mapper.readTree( jsonResponse );
+            
             if ( nodes.get( JSON_NODE_ITEMLIST ).isNull( ) )
+            {
+            	AppLogService.error( "ERROR : jsonResponse is Empty or null" );
                 return null;
+            }
 
             JsonNode itemListNode = nodes.get( JSON_NODE_ITEMLIST );
+            
             if ( itemListNode != null )
             {
                 if ( typeSubscription.equals( DolistConstants.TYPE_SUBSCRIPTION ) )
@@ -430,9 +438,9 @@ public class DolistProvider implements IBroadcastProvider
             }
         }
         catch( Exception e )
-        {
-            String strError = "Error occured while getting the list of interests ids and names.";
-            AppLogService.error( strError + e.getMessage( ), e );
+        { 
+            String strError = "Error occured while getting the list of user subscriptions names.";
+            AppLogService.error( strError + " - Message error : " + e.getMessage( ), e );
         }
 
         return userSubscriptionNamesList;
@@ -627,7 +635,7 @@ public class DolistProvider implements IBroadcastProvider
         }
         catch( Exception e )
         {
-            String strError = "Error occured while getting the list of interests ids and names.";
+            String strError = "Error occured while mapping Ids and Names of subscriptions.";
             AppLogService.error( strError + e.getMessage( ), e );
         }
     }
