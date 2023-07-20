@@ -37,6 +37,7 @@ import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import fr.paris.lutece.portal.service.util.AppLogService;
+import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.admin.MVCAdminJspBean;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
@@ -76,6 +77,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
 
     // Properties
     private static final String PROPERTY_PAGE_TITLE_BROADCASTPROXY = "broadcastproxy.pageTitle";
+    private static final String PROPERTY_ACCOUNT_ID = AppPropertiesService.getProperty( "dolist.CONSTANTE_ACCOUNT_ID" );
 
     // Markers
     private static final String MARK_SUBSCRIPTION_LIST = "subscription_list";
@@ -295,7 +297,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             // update user subscription
             try
             {
-                boolean result = BroadcastService.getInstance( ).update( sub );
+                boolean result = BroadcastService.getInstance( ).update( sub, PROPERTY_ACCOUNT_ID );
 
                 if ( result )
                 {
@@ -354,7 +356,7 @@ public class BroadcastproxyJspBean extends MVCAdminJspBean
             // update user subscriptions
             try
             {
-                boolean result = BroadcastService.getInstance( ).update( sub );
+                boolean result = BroadcastService.getInstance( ).update( sub, PROPERTY_ACCOUNT_ID );
 
                 if ( result )
                 {

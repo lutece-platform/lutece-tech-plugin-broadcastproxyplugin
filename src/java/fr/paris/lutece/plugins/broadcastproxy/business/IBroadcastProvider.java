@@ -36,6 +36,8 @@ package fr.paris.lutece.plugins.broadcastproxy.business;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+
 public interface IBroadcastProvider
 {
 
@@ -47,58 +49,25 @@ public interface IBroadcastProvider
     String getName( );
 
     /**
-     * subscribe
+     * update user subscriptions to the specified subscription list
      * 
-     * @param userId
-     * @param subscriptionId
-     * @param typeSubscription
+     * @param subscriptionsList
+     * @param strAccountId
      * @return true if success
      * @throws java.lang.Exception
      */
-    boolean subscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception;
-
-    /**
-     * unsubscribe
-     * 
-     * @param userId
-     * @param subscriptionId
-     * @param typeSubscription
-     * @return true if success
-     * @throws java.lang.Exception
-     */
-    boolean unsubscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception;
-
-    /**
-     * returns the user subscriptions list as list of Subscriptions by groups (themes) in HashMap with Group name as key
-     * 
-     * @param userId
-     * @param typeSubscription
-     * @return the list
-     * @throws java.lang.Exception
-     */
-    Map<String, Map<String, List<Subscription>>> getUserSubscriptionsAsList( String userId ) throws Exception;
-
-    /**
-     * returns the user subscriptions list as a JSON string like :
-     * 
-     * {"subscriptions":[{"name":"EXAMPLE_ONE","active":"0"},{"name":"EXAMPLE_TWO","active":"1","data":["data1","date2","data3"]}]}
-     * 
-     * @param userId
-     * @param typeSubscription
-     * @return a JSON string
-     * @throws java.lang.Exception
-     */
-    String getUserSubscriptionsAsJson( String userId ) throws Exception;
+    boolean updateSubscribtions( String userId, String jsonSubscriptions, String strAccountId ) throws Exception;
 
     /**
      * update user subscriptions to the specified subscription list
      * 
      * @param subscriptionsList
+     * @param strAccountId
      * @return true if success
      * @throws java.lang.Exception
      */
-    boolean updateSubscribtions( String userId, String jsonSubscriptions ) throws Exception;
-
+    boolean updateArrondissementSubscribtions( String userId, String jsonSubscriptions, String strAccountId ) throws Exception;
+    
     /**
      * update user subscriptions to the specified subscription list
      * 
@@ -112,10 +81,11 @@ public interface IBroadcastProvider
      * update user subscription
      * 
      * @param subscription
+     * @param strAccountId
      * @return true if success
      * @throws java.lang.Exception
      */
-    boolean update( Subscription subscription ) throws Exception;
+    boolean update( Subscription subscription, String strAccountId ) throws Exception;
 
     /**
      * get feed list
@@ -124,11 +94,22 @@ public interface IBroadcastProvider
      */
     List<Feed> getFeeds( );
 
+    
     /**
-     * get the subscription view order
-     * 
-     * @return the list
+     * get all subscription by group
+     * @param typeSubscription
+     * @param strAccountId
+     * @return
+     * @throws Exception
      */
-    public List<String> getSubscriptionViewOrder( );
+    String getAllSubscriptionByGroup( String typeSubscription, String strAccountId );
+    
+    /**
+     * get user subscriptions ids
+     * @param strUserId
+     * @param strAccountId
+     * @return list of user subscription ids
+     */
+    List<JSONObject> getUserSubscriptionIds ( String strUserId, String strAccountId );
 
 }

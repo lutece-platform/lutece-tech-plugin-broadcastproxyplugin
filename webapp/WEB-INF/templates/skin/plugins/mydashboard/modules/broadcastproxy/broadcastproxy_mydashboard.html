@@ -1,4 +1,3 @@
-
 <style >
 a.updateUserSubscriptions {
 	color:white  !important;
@@ -36,12 +35,69 @@ border-color: #28a745;
 </style>
 
 <section class="subscriptions mt-3">
-	<div class="container px-5 py-3 subscriptionGroup" id="subscriptionsDiv">
+	<div class="container px-5 py-3 subscriptionGroup" id="subscriptionsDiv">    		
 		<h2 class='main-color'>Mes abonnements</h2><br/>
-    	<@messages errors=errors />
-		<@messages infos=infos />			
+		<#if listSubscriptions??>
+		<div class="row">
+			<#list listSubscriptions as sub>
+				<#if sub.enabled && sub.group == 'Newsletters'>
+					<div class="col-md-6">
+						<div class="SubscriptionDiv">
+							<div class="custom-control custom-switch">
+								<input type="checkbox" class="custom-control-input subscriptionSwitch subscriptionCheckBox sub-${(sub.subscriptionId)!}" 
+								name="${(sub.label)!}" id="${(sub.subscriptionId)!}" subtype="NEWSLETTER" groupname="${(sub.label)!}" data-size="large" 
+								data-on="success" data-off="warning" aria-describedby="label-${(sub.code)!}" onchange="onChange(this)">
+								<label for="${(sub.subscriptionId)!}" class="custom-control-label">
+									<span class="h3">${(sub.label)!}</span>
+								</label>
+							</div>
+							<p class="py-2 font-m-light" id="label-"${(sub.label)!}'="">${(sub.description)!}
+							<br>
+								<br> Fréquence : ${(sub.frequency)!}</p>
+						</div>
+					</div>
+				</#if>
+			</#list>
+			<div class="container subscriptionsTypeDiv" id="div_subscription_typeALERT">
+				<br>
+				<h3 class="h2 main-color">Mes alertes</h3>
+				<p class="py-2 font-m-light" id="label-" alert'="">
+					Abonnez-vous aux sujets qui vous interessent et soyez alertés par mail
+					lorsqu'une information importante est lancée : dates d'inscriptions,
+					résultats du vote du budget participatif, nouvelle réglementation,
+					etc...<br> <br> Ces notifications vous sont adressées par
+					mail et/ou sms selon votre choix et selon l'actualité.
+				</p>
+				<#if listSubscriptions??>
+				<div class="row">
+					<#list listSubscriptions as sub>
+					<#if sub.enabled && sub.group == 'Alertes'>
+					<div class="col-md-6">
+						<div class="SubscriptionDiv">
+							<div class="custom-control custom-switch">
+								<input type="checkbox"
+									class="custom-control-input subscriptionSwitch subscriptionCheckBox sub-${(sub.subscriptionId)!}"
+									name="${(sub.label)!}" id="${(sub.subscriptionId)!}" subtype="ALERT"
+									groupname="${(sub.label)!}" data-size="large" data-on="success"
+									data-off="warning" aria-describedby="label-${(sub.code)!}"
+									onchange="onChange(this)">
+									<label for="${(sub.subscriptionId)!}" class="custom-control-label"> <span class="h3">${(sub.label)!}</span>
+								</label>
+							</div>
+						</div>
+					</div>
+					</#if>
+					</#list>
+				</div>
+				</#if>
+			</div>
+		</div>
+		</#if>
+		<@messages errors=errors />
+		<@messages infos=infos />		
 	</div>
 </section>
+
 
 <div class="modalLoading"><!-- modal loading splash screen while waiting ajax calls --> </div>
 
@@ -87,45 +143,17 @@ function push ( json ) {
 }
 
 function onChange(element) {
-	jsonSubList = [];
-	jsonSubListByGroup = [];
-	jsonUserSubscriptionsList = [];
-	
 	var jsonSub = {
     	"id": $( element ).attr( "id" ),
-    	"active": false
+    	"active": false,
+    	"account": "default"
     }
 	
 	if( $(element).is(':checked') ){
 		jsonSub.active = true;
 	}
 	
-	// Add subscription to list
-	jsonSubList.push(jsonSub);
-	 
-	// Build json user subscriptions by group
-    jsonUserSubscriptionByGroup = {
-   		"groupName": $( element ).attr( "groupname" ),
-    	"subscriptionsList": jsonSubList
-    }
-
-    jsonSubListByGroup.push(jsonUserSubscriptionByGroup);
-    
-	// Build json user subscriptions by type
-    jsonUserSubscriptionByType = {
-		"typeName": $( element ).attr( "subtype" ),
-    	"subscriptionsByGroup": jsonSubListByGroup
-    }
-
-	// Add subscription to list
-	jsonUserSubscriptionsList.push(jsonUserSubscriptionByType);
-	 
-	// Build json to return
-	jsonUserSubscriptions = {
-		"userSubscriptions": jsonUserSubscriptionsList
-    }
-	
-	push( jsonUserSubscriptions );
+	push( jsonSub );
 }
 
 var urlGetUserSubscriptions  = "jsp/site/Portal.jsp?page=broadcastproxyMyDashboard&action=getUserSubscriptions";
@@ -133,6 +161,7 @@ var urlGetUserSubscriptions  = "jsp/site/Portal.jsp?page=broadcastproxyMyDashboa
 //on page load event do ...
 $(function() {
   // ajax  call
+  $("#subscriptionsDiv").hide();
   $.ajax({
 	  type: "GET",
 	  url: urlGetUserSubscriptions,
@@ -140,13 +169,14 @@ $(function() {
 	  contentType: "application/json",	  
       success: function(data){ 
     	  if ( data.status === "OK" ) {
-    		  var user_subscriptions = data.result.user_subscriptions;
-        	  
-        	  if (user_subscriptions !== null && user_subscriptions.length > 0 && user_subscriptions !== undefined) {   
-        		  
-        		  let template = addNewsletters( user_subscriptions ) + addAlerts( user_subscriptions ); 	
-        		  
-            	  $('#subscriptionsDiv').append( template ).append( "<br/>" );
+    		  var user_subscriptions = JSON.parse(data.result) ;		  
+        	  if (user_subscriptions !== null && user_subscriptions.length > 0 && user_subscriptions !== undefined) {          		  
+       		     for ( let i=0; i < user_subscriptions.length ; i++) {
+       		    	 if( user_subscriptions[i] !== null &&  user_subscriptions[i] !== undefined){
+       		  	     	$(".sub-" + user_subscriptions[i].id ).prop("checked", true );
+       		    	 }
+       		  	} 
+       		   $("#subscriptionsDiv").show();
         	  }
         	  else {
         		  let errorMsg = "<div class='alert alert-danger'><p class='fa fa-solid fa-warning'>   Vos abonnements sont temporairement indisponibles.</p></div>"
@@ -172,102 +202,4 @@ $(function() {
       }
    });
  });
- 
-//---------------- NEWSLETTERS --------------------//
-function addNewsletters( user_subscriptions ) {
-	let template = "";
-  	var sub_type = "NEWSLETTER";
-  	for ( let compt_type=0; compt_type < user_subscriptions.length ; compt_type++) {
-  		if (user_subscriptions[compt_type].groupname === sub_type) {  			
-  			var subscriptions = user_subscriptions[compt_type].subscriptions; // Toutes les newsletters
-  			template +=  "<div class='container subscriptionsTypeDiv' id='div_subscription_type" + sub_type + "' >"
-  					+ "	<h3 class='h2 main-color'>Mes newsletters</h3><div class='row'>"
-  					
-			for ( let compt_nwl=0; compt_nwl < subscriptions.length ; compt_nwl++) {
-				//------- Subscriptions is a simple newsletters without Groups -------//
-				var nwl = subscriptions[compt_nwl];
-				if ( nwl.sublist.length === 1 && nwl.subname === nwl.sublist[0].name ) {
-					var nwlelement = nwl.sublist[0];
-					template += "<div class='col-md-6'>" 
-							+ addCheckBox( nwlelement, nwlelement.name, sub_type )
-           					+ "<p class='py-2 font-m-light' id='label-'" + nwlelement.name + "'>" + nwlelement.description + "</p></div></div>";
-				}
-				else { //------- Subscriptions is newsletters with Groups -------//
-					template += "<div class='container ml-1'><div class=row><div class='col-md-6'><strong>" + nwl.subname + "</strong>";
-					if (nwl.description !== "")	{
-						template += "<p class='py-2 font-m-light' id='label-'" + nwl.name + "'>" + nwl.description + "</p>";
-					} 
-					
-					for ( let compt_nwlelement=0; compt_nwlelement < nwl.sublidt.length ; compt_nwlelement++ ) {
-						var nwlelement = nwl.sublist[compt_nwlelement];
-						
-						template += addCheckBox( nwlelement, nwlelement.name, sub_type );             		  			
-      		  			//template += "<p class='py-2 font-m-light' id='label-'" + nwlelement.name + "'>" + nwlelement.description + "</p>";      
-   		  			}
-					template += "</div></div></div>";  	 
-				}
-			}
-			template += "</div></div>";
-		}
-	}	
-  	
-  	return template;
-}
-
-//---------------- ALERTS --------------------// 	 
-function addAlerts( user_subscriptions ) {
-	let template = "";
-	var sub_type = "ALERT";
-	for ( let compt_type=0; compt_type < user_subscriptions.length ; compt_type++) {
-		if (user_subscriptions[compt_type].groupname === sub_type) { 
-			var subscriptions = user_subscriptions[compt_type].subscriptions; // Toutes les alertes
-			
-			template += "<div class='container subscriptionsTypeDiv' id='div_subscription_type" + sub_type + "' ><br/><h3 class='h2 main-color'>Mes alertes</h3>" 
-					+ "<p class='py-2 font-m-light' id='label-'" + sub_type + "'>" + user_subscriptions[compt_type].description + "</p><div class='row'>";		
-			
-			for ( let compt_alert=0; compt_alert < subscriptions.length ; compt_alert++) {
-				var alerts = subscriptions[compt_alert]; 
-				for ( let compt_alertelement=0; compt_alertelement < alerts.sublist.length ; compt_alertelement++ ) {
-					var alert = alerts.sublist[compt_alertelement];
-					template += "	<div class='col-md-6'>" + addCheckBox( alert, alert.name, sub_type ) + "</div></div>";  
-				}				
-			}			  
-      	  	template += "</div></div></div>";   
-   	  	}
-	}
-	
-	return template;
-}
-
-function addCheckBox( element, groupname, type ) {
-	let cb = "<div class='SubscriptionDiv'><div class='custom-control custom-switch'>"
-			+ "<input type='checkbox' class='custom-control-input subscriptionSwitch subscriptionCheckBox' name='" + element.name + "' id='" 
-			+ element.id + "' subtype='" + type + "' groupname='" + groupname 
-			+ "' data-size='large' data-on='success' data-off='warning' aria-describedby='label-" + element.id + "' onchange='onChange(this)'"  ;
-	if (element.active === true) {
-		cb += " checked='checked'" ;
-	}	
-	cb += "/><label for='" + element.id + "' class='custom-control-label'> <span class='h3\'>" + element.name + "</span> </label></div>";
-				
-	return cb;
-}
-
-
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

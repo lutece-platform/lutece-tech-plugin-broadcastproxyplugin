@@ -35,13 +35,19 @@ package fr.paris.lutece.plugins.broadcastproxy.web;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastCacheService;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.security.LuteceUser;
@@ -76,7 +82,11 @@ public class BroadcastproxyXPage extends MVCApplication
     private static final String ACTION_GET_USER_SUBSCRIPTIONS = "getUserSubscriptions";
 
     private static final String PROPERTY_MSG_ERROR_GET_USER_SUBSCRIPTIONS = "broadcastproxy.msg.ERROR_GET_USER_SUBSCRIPTIONS";
-
+    private static final String PROPERTY_ACCOUNT_ID = AppPropertiesService.getProperty( "dolist.CONSTANTE_ACCOUNT_ID" );
+    private static final String PROPERTY_ACCOUNT_ADDROND_PREFIX = "dolist.CONSTANTE_ACCOUNT_ID_";
+    
+    private static final String JSON_NODE_ACCOUNT = "account";
+    
     /**
      * Check if the current (front) user is authenticated
      * 
@@ -122,30 +132,41 @@ public class BroadcastproxyXPage extends MVCApplication
      *            The request
      * @return
      */
+    @SuppressWarnings( "unchecked" )
     @Action( ACTION_GET_USER_SUBSCRIPTIONS )
     public XPage doGetUserSubscriptions( HttpServletRequest request )
     {
-        ObjectMapper mapper = new ObjectMapper( );
-        JsonNode userSubscriptionsJsonNode = null;
-
         String mailUser = getMailUserAuthenticated( request );
-
+        String strUserSubscriptionIds = BroadcastCacheService.getInstance( ).getUserSubscriptionIds( mailUser )  ;
         if ( StringUtils.isBlank( mailUser ) )
         {
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
         }
 
         try
-        {
-            BroadcastService broadcastService = BroadcastService.getInstance( );
-            String userSubscriptions = broadcastService.getUserSubscriptionsAsJson( mailUser );
-            if ( userSubscriptions == null )
-            {
-            	String returnedMsg = "Vos newsletters sont momentanément indisponibles.";
-            	return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( returnedMsg ) ) );
+        {        
+            if( StringUtils.isEmpty( strUserSubscriptionIds ) )
+            {                     
+                //Retrieve user subscriptions
+                List<JSONObject> listUserSubscriptionIds = new ArrayList<>( );
+                JSONObject newsletters = new JSONObject( );
+                newsletters.put( "newsletters", BroadcastService.getInstance( ).getUserSubscriptionIds( mailUser, PROPERTY_ACCOUNT_ID ) );
+                
+                listUserSubscriptionIds.add( newsletters );
+                
+                loadUserArrondissementSubscription( mailUser, listUserSubscriptionIds );
+                
+                strUserSubscriptionIds = listUserSubscriptionIds.toString( );
+                
+                if ( StringUtils.isEmpty( strUserSubscriptionIds ) )
+                {
+                	String returnedMsg = "Vos newsletters sont momentanément indisponibles.";
+                	return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( returnedMsg ) ) );
+                }
+                
+                //Add to cache
+                BroadcastCacheService.getInstance( ).addUserSubscription( mailUser, strUserSubscriptionIds );
             }
-
-            userSubscriptionsJsonNode = mapper.readTree( userSubscriptions );
         }
         catch( Exception e )
         {
@@ -154,9 +175,34 @@ public class BroadcastproxyXPage extends MVCApplication
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( e.getMessage( ) ) ) );
         }
 
-        XPage xpage = responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( userSubscriptionsJsonNode ) ) );
+        XPage xpage = responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( strUserSubscriptionIds ) ) );
 
         return xpage;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private void loadUserArrondissementSubscription( String mailUser, List<JSONObject> listUserSubscriptionIds )
+    {
+        // Retrieve user subscriptions by arrondissement
+        List<String> listAccountIds = AppPropertiesService.getKeys( PROPERTY_ACCOUNT_ADDROND_PREFIX );
+        List<JSONObject> jsonArrondissementList = new ArrayList<>( );
+        for ( String strAccountKey : listAccountIds )
+        {
+            String strAccountId = AppPropertiesService.getProperty( strAccountKey );
+            if ( StringUtils.isNotEmpty( strAccountId ) )
+            {
+                List<JSONObject> listUserSubscriptionArrond = BroadcastService.getInstance( ).getUserSubscriptionIds( mailUser, strAccountId );
+
+                JSONObject jsonArrondissement = new JSONObject( );
+                jsonArrondissement.put( "name", strAccountKey.replace( PROPERTY_ACCOUNT_ADDROND_PREFIX, StringUtils.EMPTY ) );
+                jsonArrondissement.put( "subscription", CollectionUtils.isNotEmpty( listUserSubscriptionArrond ) );
+
+                jsonArrondissementList.add( jsonArrondissement );
+            }
+        }
+        JSONObject arrondissements = new JSONObject( );
+        arrondissements.put( "arrondissements", jsonArrondissementList );
+        listUserSubscriptionIds.add( arrondissements );
     }
 
     /**
@@ -175,7 +221,7 @@ public class BroadcastproxyXPage extends MVCApplication
     {
 
         String mailUser = getMailUserAuthenticated( request );
-
+        
         if ( StringUtils.isBlank( mailUser ) )
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "User not authentified." ) ) );
 
@@ -184,23 +230,27 @@ public class BroadcastproxyXPage extends MVCApplication
         {
             StringBuilder sb = new StringBuilder( );
             String line = null;
-
+            
             BufferedReader reader = request.getReader( );
             while ( ( line = reader.readLine( ) ) != null )
                 sb.append( line );
 
             strJson = sb.toString( );
+            
         }
         catch( IOException e )
         {
             return responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "An error occured while receiving the response" ) ) );
         }
 
-        if ( updateSubscriptions( strJson, mailUser ) != true )
+        if ( updateSubscriptions( strJson, mailUser ) )
         {
             responseJSON( JsonUtil.buildJsonResponse( new ErrorJsonResponse( "An error occured while receiving the response" ) ) );
         }
-
+        
+        //Remove cache after update subscription
+        BroadcastCacheService.getInstance( ).removeUserSubscription( mailUser );
+        
         return responseJSON( JsonUtil.buildJsonResponse( new JsonResponse( "ok" ) ) );
     }
 
@@ -208,14 +258,26 @@ public class BroadcastproxyXPage extends MVCApplication
      * update Subscriptions
      * 
      * @param jsonResponse
+     * @param userId
      * @return true if successful
      */
     private boolean updateSubscriptions( String jsonResponse, String userId )
     {
         try
         {
-            // update subscriptions by feed type
-            BroadcastService.getInstance( ).updateSubscribtions( userId, jsonResponse );
+            JsonNode jsonNodes = new ObjectMapper( ).readTree( jsonResponse );
+            String strAccount = jsonNodes.get( JSON_NODE_ACCOUNT ).asText( );
+            
+            if ( StringUtils.isNotEmpty( strAccount ) && !strAccount.equals( "default" )  )
+            {
+                String strAccountId = AppPropertiesService.getProperty( PROPERTY_ACCOUNT_ADDROND_PREFIX + strAccount  ) ;               
+                BroadcastService.getInstance( ).updateArrondissementSubscribtions( userId, jsonResponse, strAccountId );
+            }
+            else
+            {
+                // update subscriptions by feed type
+                BroadcastService.getInstance( ).updateSubscribtions( userId, jsonResponse, PROPERTY_ACCOUNT_ID );               
+            }
         }
         catch( Exception e )
         {

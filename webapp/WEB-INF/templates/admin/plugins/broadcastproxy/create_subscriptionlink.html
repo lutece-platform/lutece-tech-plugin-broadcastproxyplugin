@@ -1,0 +1,44 @@
+<#include "managesubscription_tabs.html" />
+<@tabs2 tab="subscriptionlink" />
+<@box>
+	<@boxHeader title='#i18n{broadcastproxy.create_subscriptionlink.title}' />
+	<@boxBody>
+    <@tform name='create_subscriptionlink' action='jsp/admin/plugins/broadcastproxy/ManageSubscriptionLinks.jsp' params='enctype="multipart/form-data"' >
+
+        <@messages errors=errors />
+        <@input type="hidden" id="id" name="id"/>
+        <@input type="hidden" value="${token}" name="token" />
+	
+		<@formGroup labelFor='label' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelLabel}' mandatory=true>
+			<@input type='text' id='label' name='label'  maxlength=255 value='${subscriptionlink.label!\'\'}' tabIndex='0' />
+		</@formGroup>
+		<@formGroup labelFor='pictogramme' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelPictogramme}'>
+			<@input type='file' id='pictogramme' name='pictogramme'  value='${subscriptionlink.pictogramme!\'\'}' tabIndex='1' />
+		</@formGroup>
+		<@formGroup labelFor='description' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelDescription}' mandatory=true>
+			<@input type='textarea' id='description' name='description'  value='${subscriptionlink.description!\'\'}' tabIndex='2' />
+		</@formGroup>
+		<@formGroup labelFor='frequency' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelFrequency}' mandatory=true>
+			<@input type='text' id='frequency' name='frequency'  value='${subscriptionlink.frequency!\'\'}' tabIndex='3' />
+		</@formGroup>
+		<@formGroup labelFor='group' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelGroup}' mandatory=true>
+			<@input type='text' id='group' name='group'  value='${subscriptionlink.group!\'\'}' tabIndex='4' />
+		</@formGroup>
+		<@formGroup labelFor='group_id' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelGroupId}' mandatory=true>
+			<@input type='text' id='group_id' name='group_id'  value='${subscriptionlink.groupId!\'\'}' tabIndex='4' />
+		</@formGroup>
+		<@formGroup labelFor='subscription_id' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelSubscriptionId}' mandatory=true>
+			<@input type='text' id='subscription_id' name='subscription_id'  value='${subscriptionlink.subscriptionId!\'\'}' tabIndex='5' />
+		</@formGroup>
+		<@formGroup labelFor='interest_id' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelInterestId}'>
+			<@input type='text' id='interest_id' name='interest_id'  value='${subscriptionlink.interestId!\'\'}' tabIndex='5' />
+		</@formGroup>
+		<@formGroup labelFor='enabled' labelKey='#i18n{broadcastproxy.modify_subscriptionlink.labelEnabled}' mandatory=true>
+			<@radioButton orientation='horizontal' labelKey='#i18n{portal.util.labelYes}' name='enabled' value='1' checked=subscriptionlink.enabled == true />
+			<@radioButton orientation='horizontal' labelKey='#i18n{portal.util.labelNo}' name='enabled' value='0' checked=subscriptionlink.enabled == false/>		
+		</@formGroup>
+				
+		<@actionButtons button1Name="action_createSubscriptionLink" button2Name="view_manageSubscriptionLink"/>
+    </@tform>
+	</@boxBody>
+</@box>
