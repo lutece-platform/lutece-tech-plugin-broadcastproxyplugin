@@ -1,0 +1,51 @@
+<#include "managesubscription_tabs.html" />
+<@tabs2 tab="subscriptionlink" />
+
+<@box>
+	<@boxHeader title='#i18n{broadcastproxy.manage_subscriptionlink.title}' boxTools=true>
+		<@tform class='form-inline pull-right' name='manage_subscriptionlink' action='jsp/admin/plugins/broadcastproxy/ManageSubscriptionLinks.jsp'>
+			<@button type='submit' name='view_createSubscriptionLink' buttonIcon='plus' title='#i18n{broadcastproxy.manage_subscriptionlinks.buttonAdd}' />
+		</@tform>
+	</@boxHeader>
+	<@boxBody>    
+    <@messages infos=infos />
+    <@messages warnings=warnings />
+    <@paginationAdmin paginator=paginator combo=1 />
+    <div class="clearfix"></div>
+    <@table>
+        <tr>
+            <th>#i18n{broadcastproxy.manage_subscriptionlinks.columnLabel}</th>
+            <th>#i18n{broadcastproxy.manage_subscriptionlinks.columnGroup}</th>
+            <th>#i18n{broadcastproxy.manage_subscriptionlinks.columnSubscriptionId}</th>
+            <th>#i18n{broadcastproxy.manage_subscriptionlinks.columnEnabled}</th>
+            <th>#i18n{portal.util.labelActions}</th>
+        </tr>
+        <@tableHeadBodySeparator />
+        <#list subscriptionlink_list as subscriptionlink >
+        <tr>
+            <td>
+				${subscriptionlink.label}
+			</td>
+            <td>
+				${subscriptionlink.group}
+			</td>
+            <td>
+				${subscriptionlink.subscriptionId}
+			</td>
+            <td>
+				${subscriptionlink.enabled?string('Oui','Non')}
+			</td>
+        	<td>
+				<@aButton href='jsp/admin/plugins/broadcastproxy/ManageSubscriptionLinks.jsp?view=modifySubscriptionLink&id=${subscriptionlink.id}' title='#i18n{portal.util.labelModify}' hideTitle=['all'] buttonIcon='pencil' />
+						
+				<@aButton href='jsp/admin/plugins/broadcastproxy/ManageSubscriptionLinks.jsp?action=confirmRemoveSubscriptionLink&id=${subscriptionlink.id}' title='#i18n{portal.util.labelDelete}' buttonIcon='trash' hideTitle=['all'] color='btn-danger'  />
+
+	        </td>
+        </tr>
+        </#list>
+    </@table>
+
+    <@paginationAdmin paginator=paginator />
+
+  </@boxBody>
+</@box>

@@ -43,8 +43,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 
+import fr.paris.lutece.plugins.broadcastproxy.business.SubscriptionLinkHome;
 import fr.paris.lutece.plugins.broadcastproxy.service.BroadcastService;
 import fr.paris.lutece.plugins.mydashboard.service.MyDashboardComponent;
+import fr.paris.lutece.portal.service.fileimage.FileImagePublicService;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.security.SecurityService;
@@ -64,11 +66,11 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
 
     // PROPERTIES
     private static final String PROPERTY_MYDASHBOARD_DESCRIPTION = "broadcastproxy.component.broadcastproxy.description";
-
     // Markers
     private static final String MARK_BROADCASTPROXY = "broadcastproxy";
     private static final String MARK_LUTECE_USER = "user";
     private static final String MARK_INFOS = "infos";
+    private static final String MARK_LIST_SUBSCRIPTIONS = "listSubscriptions";
 
     // instance variables
     private List<ErrorMessage> _listInfos = new ArrayList<>( );
@@ -109,10 +111,11 @@ public class MyDashboardBroadcastproxy extends MyDashboardComponent
                     userMail = _luteceUser.getUserInfo( mailUserInfoKey );
                 }
             }
-
+            FileImagePublicService.init( );
             BroadcastService broadcastService = BroadcastService.getInstance( );
             model.put( MARK_BROADCASTPROXY, broadcastService.getName( ) );
-
+            model.put( MARK_LIST_SUBSCRIPTIONS, SubscriptionLinkHome.getSubscriptionLinksList( ) );
+            
             model.put( MARK_INFOS, _listInfos );
         }
 

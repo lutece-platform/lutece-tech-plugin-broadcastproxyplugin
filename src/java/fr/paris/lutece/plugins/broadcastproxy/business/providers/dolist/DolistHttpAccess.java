@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -77,10 +78,12 @@ public class DolistHttpAccess
             }
 
             // add proxy
-            HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
-            RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
-            method.setConfig( config );
-
+            if( StringUtils.isNotEmpty( PROXY_ADR ) )
+            {
+                HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
+                RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
+                method.setConfig( config );
+            }
             // Execute method
             httpResponse = client.execute( method );
 
@@ -122,10 +125,12 @@ public class DolistHttpAccess
             method.setEntity( entity );
 
             // add proxy
-            HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
-            RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
-            method.setConfig( config );
-
+            if( StringUtils.isNotEmpty( PROXY_ADR ) )
+            {
+                HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
+                RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
+                method.setConfig( config );
+            }
             httpResponse = client.execute( method );
 
             // If error
@@ -175,9 +180,12 @@ public class DolistHttpAccess
             method.setEntity( entity );
 
             // add proxy
-            HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
-            RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
-            method.setConfig( config );
+            if( StringUtils.isNotEmpty( PROXY_ADR ) )
+            {
+                HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
+                RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
+                method.setConfig( config );
+            }
 
             httpResponse = client.execute( method );
 
@@ -226,9 +234,12 @@ public class DolistHttpAccess
             method.setHeader( "Content-Type", "application/x-www-form-urlencoded" );
 
             // add proxy
-            HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
-            RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
-            method.setConfig( config );
+            if( StringUtils.isNotEmpty( PROXY_ADR ) )
+            {
+                HttpHost proxy = new HttpHost( PROXY_ADR, PROXY_PORT );
+                RequestConfig config = RequestConfig.custom( ).setProxy( proxy ).build( );
+                method.setConfig( config );
+            }
 
             httpResponse = client.execute( method );
         }

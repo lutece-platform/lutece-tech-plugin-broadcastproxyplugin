@@ -1,0 +1,2 @@
+broadcastCacheService.enabled=1
+broadcastCacheService.timeToLiveSeconds=300

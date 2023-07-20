@@ -11,7 +11,7 @@
     <provider-url>http://lutece.paris.fr</provider-url>
     <icon-url>images/admin/skin/feature_default_icon.png</icon-url>
     <copyright>Copyright (c) 2019 Mairie de paris</copyright>
-    <db-pool-required>0</db-pool-required>
+    <db-pool-required>1</db-pool-required>
     
     <core-version-dependency>
         <min-core-version>4.1.0</min-core-version>
@@ -28,6 +28,14 @@
             <feature-url>jsp/admin/plugins/broadcastproxy/ManageBroadcastProxy.jsp</feature-url>
             <feature-icon-url/>
       </admin-feature>
+      <admin-feature>
+          <feature-id>BROADCASTPROXY_MANAGEMENT_NEWSLETTERS</feature-id>
+          <feature-title>broadcastproxy.adminFeature.ManageSubscription.name</feature-title>
+          <feature-description>broadcastproxy.adminFeature.ManageSubscription.description</feature-description>
+          <feature-level>0</feature-level>
+          <feature-url>jsp/admin/plugins/broadcastproxy/ManageSubscriptionLinks.jsp</feature-url>
+          <feature-icon-url></feature-icon-url>
+      </admin-feature>
     </admin-features>    
 
     <!-- XPages parameters -->
@@ -37,6 +45,16 @@
             <application-class>fr.paris.lutece.plugins.broadcastproxy.web.BroadcastproxyXPage</application-class>
         </application>
     </applications>
+    
+    <!-- Daemons parameters -->
+    <daemons>
+		<daemon>
+			<daemon-id>broadcastDaemon</daemon-id>
+			<daemon-name>broadcastproxy.daemon.broadcastDaemon.name</daemon-name>
+			<daemon-description>broadcastproxy.daemon.broadcastDaemon.description</daemon-description>
+			<daemon-class>fr.paris.lutece.plugins.broadcastproxy.service.BroadcastDaemon</daemon-class>
+		</daemon>
+	</daemons>
 
     <!-- Portlet parameters -->
     <portlets>

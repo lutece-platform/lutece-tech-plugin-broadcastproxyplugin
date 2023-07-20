@@ -33,18 +33,15 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.business.providers.dolist;
 
-import java.io.IOException;
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +49,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
-import fr.paris.lutece.plugins.broadcastproxy.service.Constants;
+import fr.paris.lutece.plugins.broadcastproxy.business.SubscriptionLink;
+import fr.paris.lutece.plugins.broadcastproxy.business.SubscriptionLinkHome;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
@@ -63,9 +61,7 @@ public class DolistProvider implements IBroadcastProvider
 
     private static final String JSON_NODE_ITEMLIST = AppPropertiesService.getProperty( "dolist.jsonNode.ItemList" );
     private static final String JSON_NODE_ITEM_INTERESTLIST = AppPropertiesService.getProperty( "dolist.jsonNode.item.InterestList" );
-    private static final String JSON_NODE_ITEM_INTEREST = AppPropertiesService.getProperty( "dolist.jsonNode.item.Interest" );
     private static final String JSON_NODE_ITEM_GROUP = AppPropertiesService.getProperty( "dolist.jsonNode.item.Group" );
-    private static final String JSON_NODE_ITEM_STATUS = AppPropertiesService.getProperty( "dolist.jsonNode.item.Status" );
     private static final String JSON_NODE_SUB_ID = AppPropertiesService.getProperty( "dolist.jsonNode.sub.SubscriptionID" );
     private static final String JSON_NODE_INTEREST_NAME = AppPropertiesService.getProperty( "dolist.jsonNode.interest.Name" );
     private static final String JSON_NODE_INTEREST_IS_ACTIVE = AppPropertiesService.getProperty( "dolist.jsonNode.interest.isActive" );
@@ -76,7 +72,6 @@ public class DolistProvider implements IBroadcastProvider
 
     private static final String CONSTANT_OPERATION_MODE_ADD = AppPropertiesService.getProperty( "dolist.CONSTANTE_OPERATION_MODE_ADD" );
     private static final String CONSTANT_OPERATION_MODE_DELETE = AppPropertiesService.getProperty( "dolist.CONSTANTE_OPERATION_MODE_DELETE" );
-    private static final String CONSTANT_SUB_DESCRIPTION_PREFIX = AppPropertiesService.getProperty( "subscription.description.CONSTANT_PREFIX" );
 
     // instance variables
     private DolistAPI _dolistAPI;
@@ -85,16 +80,15 @@ public class DolistProvider implements IBroadcastProvider
     private Map<String, String> _groupsMapIdName = new HashMap<>( );
     private Map<String, String> _interestsMapIdName = new HashMap<>( );
     private Map<String, String> _subscriptionsMapIdName = new HashMap<>( );
-
+    
     /**
      * Constructor
      * 
      * @throws Exception
      */
-    public DolistProvider( ) throws Exception
+    private DolistProvider( ) throws Exception
     {
         _dolistAPI = new DolistAPI( );
-        initMapIdName( );
     }
 
     @Override
@@ -104,88 +98,46 @@ public class DolistProvider implements IBroadcastProvider
     }
 
     @Override
-    public boolean subscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception
-    {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean unsubscribe( String userId, String subscriptionId, String typeSubscription ) throws Exception
-    {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsAsList( String userId ) throws Exception
-    {
-        String userDolistSubscriptionsList = _dolistAPI.getUserSubscriptions( userId, DolistConstants.TYPE_SUBSCRIPTION );
-        
-        if ( userDolistSubscriptionsList == null )
-        	return null;
-        
-    	Map<String, Map<String, List<Subscription>>> userSubscriptions = getUserSubscriptionsByGroup( userDolistSubscriptionsList, userId );
-
-        return userSubscriptions;
-    }
-
-    @Override
-    public String getUserSubscriptionsAsJson( String userId ) throws Exception
-    {
-        Map<String, Map<String, List<Subscription>>> userSubscriptions = getUserSubscriptionsAsList( userId );
-        if ( userSubscriptions == null )
-        	return null;
-        
-        String jsonUserSubscriptions = buildUserSubscriptionsJson( userSubscriptions );
-
-        return jsonUserSubscriptions;
-    }
-
-    @Override
     public boolean updateSubscribtions( String userId, List<Subscription> subscriptionsList ) throws Exception
     {
         return false;
     }
 
     @Override
-    public boolean updateSubscribtions( String userId, String jsonSubscriptions ) throws Exception
+    public boolean updateSubscribtions( String userId, String jsonSubscriptions, String strAccountId ) throws Exception
     {
         Map<String, String> subscriptionStatus = new HashMap<>( );
         List<Integer> interestsToAdd = new ArrayList<>( );
         List<Integer> interestsToDelete = new ArrayList<>( );
-
         try
         {
-            Map<String, Boolean> subscriptionsToUpdate = getUserSubscribtionsToUpdate( jsonSubscriptions );
+            Map<Integer, Boolean> subscriptionsToUpdate = getUserSubscribtionsToUpdate( jsonSubscriptions );
 
-            for ( Map.Entry<String, Boolean> sub : subscriptionsToUpdate.entrySet( ) )
+            for ( Map.Entry<Integer, Boolean> sub : subscriptionsToUpdate.entrySet( ) )
             {
-                if ( sub.getValue( ) )
+                Optional<SubscriptionLink> subscriptionLink = SubscriptionLinkHome.findBySubscriptionId( sub.getKey( ) );
+                if(  subscriptionLink.isPresent( ) )
                 {
-                    subscriptionStatus.put( getSubscriptionDolistId( sub.getKey( ), _subscriptionsMapIdName ), JSON_NODE_SUB_SUBSCRIBED );
-                    interestsToAdd.add( Integer.parseInt( getSubscriptionDolistId( sub.getKey( ), _interestsMapIdName ) ) );
+                    if ( sub.getValue( ) )
+                    {
+                        subscriptionStatus.put( String.valueOf( sub.getKey( ) ), JSON_NODE_SUB_SUBSCRIBED );
+                        if( subscriptionLink.get( ).getInterestId( ) > 0)
+                        {
+                            interestsToAdd.add( subscriptionLink.get( ).getInterestId( ) );
+                        }
+                    }
+                    else
+                    {
+                        subscriptionStatus.put( String.valueOf( sub.getKey( ) ), JSON_NODE_SUB_UNSUBSCRIBED );
+                        if( subscriptionLink.get( ).getInterestId( ) > 0)
+                        {
+                            interestsToDelete.add( subscriptionLink.get( ).getInterestId( ) );
+                        }
+                    }
                 }
-                else
-                {
-                    subscriptionStatus.put( getSubscriptionDolistId( sub.getKey( ), _subscriptionsMapIdName ), JSON_NODE_SUB_UNSUBSCRIBED );
-                    interestsToDelete.add( Integer.parseInt( getSubscriptionDolistId( sub.getKey( ), _interestsMapIdName ) ) );
-                }
             }
 
-            // update dolist subscriptions
-            _dolistAPI.updateSubscribtions( userId, subscriptionStatus );
-
-            // Update Dolist Interests
-            if ( !interestsToAdd.isEmpty( ) )
-            {
-                _dolistAPI.updateInterests( userId, interestsToAdd, CONSTANT_OPERATION_MODE_ADD );
-            }
-
-            if ( !interestsToDelete.isEmpty( ) )
-            {
-                _dolistAPI.updateInterests( userId, interestsToDelete, CONSTANT_OPERATION_MODE_DELETE );
-            }
+            updateSubAndInterests( userId, strAccountId, subscriptionStatus, interestsToAdd, interestsToDelete );
 
         }
         catch( Exception e )
@@ -196,12 +148,73 @@ public class DolistProvider implements IBroadcastProvider
 
         return true;
     }
+    
+    @Override
+    public boolean updateArrondissementSubscribtions( String userId, String jsonSubscriptions, String strAccountId ) throws Exception
+    {
+        Map<String, String> subscriptionStatus = new HashMap<>( );
+        List<Integer> interestsToAdd = new ArrayList<>( );
+        List<Integer> interestsToDelete = new ArrayList<>( );
+        initMapIdNameArrondissement( strAccountId );
+        
+        try
+        {
+            Map<Integer, Boolean> subscriptionsToUpdate = getUserSubscribtionsToUpdate( jsonSubscriptions );
+
+            for ( Map.Entry<Integer, Boolean> sub : subscriptionsToUpdate.entrySet( ) )
+            {
+                for( Map.Entry<String, String>  subscription: _subscriptionsMapIdName.entrySet( ) )
+                {
+                    subscriptionStatus.put( subscription.getKey( ), sub.getValue( ) ? JSON_NODE_SUB_SUBSCRIBED : JSON_NODE_SUB_UNSUBSCRIBED);
+                }  
+                for( Map.Entry<String, String>  interest: _interestsMapIdName.entrySet( ) )
+                {
+                    if ( sub.getValue( ) )
+                    {
+                        interestsToAdd.add( Integer.parseInt( interest.getKey( ) ) );
+                    }
+                    else
+                    {
+                        interestsToDelete.add( Integer.parseInt( interest.getKey( ) ) );
+                    }
+                }
+            }
+            
+            updateSubAndInterests( userId, strAccountId, subscriptionStatus, interestsToAdd, interestsToDelete );
+
+        }
+        catch( Exception e )
+        {
+            AppLogService.error( "An error occured while updating subscriptions : " + e.getMessage( ) );
+            return false;
+        }
+
+        return true;
+    }
+    
+    private void updateSubAndInterests( String userId, String strAccountId, Map<String, String> subscriptionStatus, List<Integer> interestsToAdd, List<Integer> interestsToDelete ) throws Exception
+    {
+        // update dolist subscriptions
+        _dolistAPI.updateSubscribtions( userId, subscriptionStatus, strAccountId );
+
+        // Update Dolist Interests
+        if ( !interestsToAdd.isEmpty( ) )
+        {
+            _dolistAPI.updateInterests( userId, interestsToAdd, CONSTANT_OPERATION_MODE_ADD, strAccountId );
+        }
+
+        if ( !interestsToDelete.isEmpty( ) )
+        {
+            _dolistAPI.updateInterests( userId, interestsToDelete, CONSTANT_OPERATION_MODE_DELETE, strAccountId );
+        }
+    }
+
 
     @Override
-    public boolean update( Subscription sub ) throws Exception
+    public boolean update( Subscription sub, String strAccountId ) throws Exception
     {
         Map<String, String> subscriptionStatus = new HashMap<String, String>( );
-
+        initMapIdName( strAccountId );
         if ( sub.isActive( ) )
         {
             subscriptionStatus.put( getSubscriptionDolistId( sub.getName( ), _interestsMapIdName ), JSON_NODE_SUB_SUBSCRIBED );
@@ -211,7 +224,7 @@ public class DolistProvider implements IBroadcastProvider
             subscriptionStatus.put( getSubscriptionDolistId( sub.getName( ), _interestsMapIdName ), JSON_NODE_SUB_UNSUBSCRIBED );
         }
 
-        _dolistAPI.updateSubscribtions( sub.getUserId( ), subscriptionStatus );
+        _dolistAPI.updateSubscribtions( sub.getUserId( ), subscriptionStatus, strAccountId );
 
         return true;
     }
@@ -221,340 +234,32 @@ public class DolistProvider implements IBroadcastProvider
     {
         return null;
     }
-
+    
     @Override
-    public List<String> getSubscriptionViewOrder( )
+    public String getAllSubscriptionByGroup( String typeSubscription, String strAccountId )
     {
-        List<String> subscriptionViewOrder = new ArrayList<String>( );
-
-        for ( Map.Entry<Integer, String> group : _groupViewRang.entrySet( ) )
-        {
-            subscriptionViewOrder.add( group.getValue( ) );
-        }
-
-        return subscriptionViewOrder;
-    }
-
-    public Map<String, List<Subscription>> getOrderedSubscriptions( Map<String, List<Subscription>> subscriptions )
-    {
-        Map<String, List<Subscription>> ordredSubscriptions = new HashMap<String, List<Subscription>>( );
-
-        if ( subscriptions != null && !subscriptions.isEmpty( ) )
-        {
-            List<String> subscriptionViewOrder = getSubscriptionViewOrder( );
-
-            for ( String orderedSubscriptionId : subscriptionViewOrder )
-            {
-                for ( Map.Entry<String, List<Subscription>> subscriptionsList : subscriptions.entrySet( ) )
-                {
-                    if ( subscriptionsList.getKey( ) != null && subscriptionsList.getKey( ).equals( orderedSubscriptionId ) )
-                    {
-                        ordredSubscriptions.put( subscriptionsList.getKey( ), subscriptionsList.getValue( ) );
-                    }
-                }
-            }
-        }
-
-        return ordredSubscriptions;
-    }
-
-    public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsByGroup( String jsonUserDolistSubscriptions, String userId ) throws Exception
-    {
-        Map<String, Map<String, List<Subscription>>> userSubscriptions = new HashMap<String, Map<String, List<Subscription>>>( );
-        List<String> userSubscriptionNamesList = new ArrayList<String>( );
-        Map<String, List<String>> allDolistSubscriptionsNamesByGroup = new HashMap<String, List<String>>( );
-        Map<String, List<Subscription>> userNewsletters = new HashMap<String, List<Subscription>>( );
-        Map<String, List<Subscription>> userAlerts = new HashMap<String, List<Subscription>>( );
-
-        try
-        {        	
-            // Build list of user subscriptions and interests names
-            userSubscriptionNamesList.addAll( getUserSubscriptionsNamesAsList( jsonUserDolistSubscriptions, DolistConstants.TYPE_SUBSCRIPTION ) );
-
-            // Add all dolist subscriptions and interests names by group
-            allDolistSubscriptionsNamesByGroup.putAll( getAllSubscriptionsNamesByGroup( DolistConstants.TYPE_INTEREST ) );
-
-            for ( Map.Entry<String, List<String>> subscriptionsNamesByGroup : allDolistSubscriptionsNamesByGroup.entrySet( ) )
-            {
-                if ( subscriptionsNamesByGroup.getKey( ) != null )
-                {
-                    List<Subscription> subscriptionsList = new ArrayList<>( );
-
-                    for ( String name : subscriptionsNamesByGroup.getValue( ) )
-                    {
-                        Subscription sub = new Subscription( );
-
-                        sub.setUserId( userId );
-                        sub.setName( name );
-                        sub.setId( name.trim( ).replace( " ", "_" ) );
-
-                        if ( userSubscriptionNamesList.contains( name ) )
-                            sub.setActive( true );
-                        else
-                            sub.setActive( false );
-
-                        subscriptionsList.add( sub );
-                    }
-
-                    String groupName = subscriptionsNamesByGroup.getKey( );
-
-                    if ( groupName.equals( "Alertes" ) )
-                    {
-                        // subscriptionType = Constants.TYPE_ALERT;
-                        if ( userAlerts.containsKey( groupName ) )
-                        {
-                            subscriptionsList.addAll( userAlerts.get( groupName ) );
-                        }
-
-                        userAlerts.put( groupName, subscriptionsList );
-                    }
-                    else
-                    {
-                        // subscriptionType = Constants.TYPE_NEWSLETTER;
-                        if ( userNewsletters.containsKey( groupName ) )
-                        {
-                            subscriptionsList.addAll( userNewsletters.get( groupName ) );
-                        }
-
-                        userNewsletters.put( groupName, subscriptionsList );
-                    }
-                }
-            }
-
-            userSubscriptions.put( Constants.TYPE_NEWSLETTER, getOrderedSubscriptions( userNewsletters ) );
-            userSubscriptions.put( Constants.TYPE_ALERT, userAlerts );
-        }
-        catch( Exception e )
-        {
-            String strError = "Error occured while getting the user list subscriptions.";
-            AppLogService.error( strError + e.getMessage( ), e );
-        }
-
-        return userSubscriptions;
-    }
-
-    public Map<String, List<String>> getAllSubscriptionsNamesByGroup( String typeSubscription ) throws Exception
-    {
-        String subscriptionsInJson = _dolistAPI.getAllSubscriptions( typeSubscription );
-        return buildDolistAllSubscriptionsNamesListByGroup( subscriptionsInJson, typeSubscription );
-    }
-
-    public Map<String, List<String>> buildDolistAllSubscriptionsNamesListByGroup( String jsonAllSubscriptions, String typeSubscription ) throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper( );
-        Map<String, List<String>> SubscriptionsName = new HashMap<String, List<String>>( );
-        String groupName = StringUtils.EMPTY;
-
-        JsonNode nodes = mapper.readTree( jsonAllSubscriptions );
-        if ( nodes.get( JSON_NODE_ITEMLIST ).isNull( ) )
-            return null;
+        String strAllSubscription = StringUtils.EMPTY;
         try
         {
-            JsonNode itemListNode = nodes.get( JSON_NODE_ITEMLIST );
-
-            for ( JsonNode itemNode : itemListNode )
-            {
-                JsonNode groupData = itemNode.get( JSON_NODE_ITEM_GROUP );
-
-                groupName = groupData.get( JSON_NODE_GROUP_NAME ).asText( );
-
-                if ( groupName.substring( 0, 1 ).equals( "[" ) && groupName.substring( groupName.length( ) - 1, groupName.length( ) ).equals( "]" )
-                        && groupName.length( ) > 2 )
-                {
-                    String [ ] splitDlGrName = groupName.split( "\\]" );
-
-                    groupName = splitDlGrName [0].substring( 1, splitDlGrName [0].length( ) );
-
-                    List<String> SubscriptionsNamesList = new ArrayList<String>( );
-                    for ( JsonNode node : itemNode.get( JSON_NODE_ITEM_INTERESTLIST ) )
-                    {
-                        if ( !node.has( JSON_NODE_INTEREST_IS_ACTIVE ) )
-                        {
-                            SubscriptionsNamesList.add( node.get( JSON_NODE_INTEREST_NAME ).asText( ) );
-                        }
-                    }
-
-                    Collections.sort( SubscriptionsNamesList, Collator.getInstance( Locale.FRENCH ) );
-
-                    SubscriptionsName.put( groupName, SubscriptionsNamesList );
-                }
-            }
+            strAllSubscription = _dolistAPI.getAllSubscriptions( typeSubscription, strAccountId );
         }
-        catch( Exception e )
-        { 
-            String strError = "Error occured while building list of all subscriptions names.";
-            AppLogService.error( strError + e.getMessage( ), e );
+        catch ( Exception e )
+        {
+            AppLogService.error( "Error occured while getting all subscriptions.", e.getMessage( ) );
         }
-
-        return SubscriptionsName;
+        return strAllSubscription;
     }
 
-    private List<String> getUserSubscriptionsNamesAsList( String jsonResponse, String typeSubscription )
+    public Map<Integer, Boolean> getUserSubscribtionsToUpdate( String jsonSubscriptions ) throws Exception
     {
         ObjectMapper mapper = new ObjectMapper( );
-        List<String> userSubscriptionNamesList = new ArrayList<String>( );
-        List<String> activeSubscriptionsId = new ArrayList<String>( );
-        
-        if (jsonResponse.contentEquals(""))
-        	return userSubscriptionNamesList;
-        
-        try
-        {
-            // Get list of only active subscriptions
-            for ( Map.Entry<String, String> subEntry : _subscriptionsMapIdName.entrySet( ) )
-            {
-                activeSubscriptionsId.add( subEntry.getKey( ) );
-            }
-      		
-            JsonNode nodes = mapper.readTree( jsonResponse );
-            
-            if ( nodes.get( JSON_NODE_ITEMLIST ).isNull( ) )
-            {
-            	AppLogService.error( "ERROR : jsonResponse is Empty or null" );
-                return null;
-            }
-
-            JsonNode itemListNode = nodes.get( JSON_NODE_ITEMLIST );
-            
-            if ( itemListNode != null )
-            {
-                if ( typeSubscription.equals( DolistConstants.TYPE_SUBSCRIPTION ) )
-                {
-                    for ( JsonNode itemNode : itemListNode )
-                    {
-                        if ( activeSubscriptionsId.contains( itemNode.get( JSON_NODE_SUB_ID ).asText( ) )
-                                && itemNode.get( JSON_NODE_ITEM_STATUS ).asText( ).equals( JSON_NODE_SUB_SUBSCRIBED ) )
-                            userSubscriptionNamesList.add( _subscriptionsMapIdName.get( itemNode.get( JSON_NODE_SUB_ID ).asText( ) ) );
-                    }
-                }
-                else
-                    if ( typeSubscription.equals( DolistConstants.TYPE_INTEREST ) )
-                    {
-                        for ( JsonNode node : itemListNode )
-                        {
-                            userSubscriptionNamesList.add( node.get( JSON_NODE_ITEM_INTEREST ).get( JSON_NODE_INTEREST_NAME ).asText( ) );
-                        }
-                    }
-            }
-        }
-        catch( Exception e )
-        { 
-            String strError = "Error occured while getting the list of user subscriptions names.";
-            AppLogService.error( strError + " - Message error : " + e.getMessage( ), e );
-        }
-
-        return userSubscriptionNamesList;
-    }
-
-    /**
-     * Build JSON response from subscription beans list
-     * 
-     * @param the
-     *            list
-     * @return a JSON String
-     */
-    private String buildUserSubscriptionsJson( Map<String, Map<String, List<Subscription>>> userSubscriptions ) throws IOException
-    {
-        ObjectMapper mapper = new ObjectMapper( );
-
-        List<LinkedHashMap<String, Object>> subscriptionGroupList = new ArrayList<LinkedHashMap<String, Object>>( );
-        Map<String, List<LinkedHashMap<String, Object>>> allSubscriptions = new HashMap<String, List<LinkedHashMap<String, Object>>>( );
-
-        Map<String, String> subscriptionsDescription = getSubscriptionsDescription( );
-
-        for ( Map.Entry<String, Map<String, List<Subscription>>> subscriptionsByGroup : userSubscriptions.entrySet( ) )
-        {
-            if ( subscriptionsByGroup.getKey( ) != null )
-            {
-                String groupDescription = StringUtils.EMPTY;
-                LinkedHashMap<String, Object> subscriptionGroup = new LinkedHashMap<String, Object>( );
-                List<LinkedHashMap<String, Object>> groupSubscriptionsList = new ArrayList<LinkedHashMap<String, Object>>( );
-
-                for ( Map.Entry<String, List<Subscription>> sub : subscriptionsByGroup.getValue( ).entrySet( ) )
-                {
-                    LinkedHashMap<String, Object> singleSubscription = new LinkedHashMap<String, Object>( );
-
-                    for ( Subscription subList : sub.getValue( ) )
-                    {
-                        for ( Map.Entry<String, String> description : subscriptionsDescription.entrySet( ) )
-                        {
-                            if ( description.getKey( ).equals( subList.getId( ) ) )
-                            {
-                                subList.setDescription( description.getValue( ) );
-                                break;
-                            }
-                        }
-
-                    }
-
-                    singleSubscription.put( "subname", sub.getKey( ) );
-                    singleSubscription.put( "sublist", sub.getValue( ) );
-
-                    groupSubscriptionsList.add( singleSubscription );
-                }
-
-                for ( Map.Entry<String, String> description : subscriptionsDescription.entrySet( ) )
-                {
-                    if ( description.getKey( ).equals( "Alertes" ) && subscriptionsByGroup.getKey( ).equals( Constants.TYPE_ALERT ) )
-                    {
-                        groupDescription = description.getValue( );
-                        break;
-                    }
-                }
-
-                subscriptionGroup.put( "groupname", subscriptionsByGroup.getKey( ) );
-                subscriptionGroup.put( "description", groupDescription );
-                subscriptionGroup.put( "subscriptions", groupSubscriptionsList );
-
-                subscriptionGroupList.add( subscriptionGroup );
-            }
-        }
-
-        allSubscriptions.put( "user_subscriptions", subscriptionGroupList );
-
-        return mapper.writeValueAsString( allSubscriptions );
-    }
-
-    private Map<String, String> getSubscriptionsDescription( )
-    {
-        Map<String, String> descriptions = new HashMap<String, String>( );
-
-        List<String> descriptionsList = AppPropertiesService.getKeys( CONSTANT_SUB_DESCRIPTION_PREFIX );
-        for ( String description : descriptionsList )
-        {
-            descriptions.put( description.substring( CONSTANT_SUB_DESCRIPTION_PREFIX.length( ) + 1 ), AppPropertiesService.getProperty( description ) );
-        }
-
-        return descriptions;
-    }
-
-    public Map<String, Boolean> getUserSubscribtionsToUpdate( String jsonSubscriptions ) throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper( );
-        Map<String, Boolean> subscriptionsToUpdate = new HashMap<>( );
+        Map<Integer, Boolean> subscriptionsToUpdate = new HashMap<>( );
 
         try
         {
             JsonNode jsonNodes = mapper.readTree( jsonSubscriptions );
-
-            JsonNode jsonUserSubscriptionList = jsonNodes.get( "userSubscriptions" );
-
-            for ( JsonNode subscriptionsByTypeNode : jsonUserSubscriptionList )
-            {
-                JsonNode subscriptionsByGrList = subscriptionsByTypeNode.get( "subscriptionsByGroup" );
-
-                for ( JsonNode subscriptionsByGr : subscriptionsByGrList )
-                {
-                    JsonNode subscriptionsList = subscriptionsByGr.get( "subscriptionsList" );
-
-                    for ( JsonNode jsonSubscription : subscriptionsList )
-                    {
-                        // Build Map (Name / Status) of subscriptions to update
-                        subscriptionsToUpdate.put( jsonSubscription.get( "id" ).asText( ).replace( "_", " " ),
-                                Boolean.valueOf( jsonSubscription.get( "active" ).asText( ) ) );
-                    }
-                }
-            }
+            subscriptionsToUpdate.put( jsonNodes.get( "id" ).asInt( ),
+            Boolean.valueOf( jsonNodes.get( "active" ).asText( ) ) );
         }
         catch( Exception e )
         {
@@ -567,15 +272,15 @@ public class DolistProvider implements IBroadcastProvider
 
     /**
      * init
-     * 
+     * @param strAccountId
      * @throws Exception
      */
-    private void initMapIdName( ) throws Exception
+    private void initMapIdName( String strAccountId ) throws Exception
     {
         ObjectMapper mapper = new ObjectMapper( );
 
-        String subscriptionsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_SUBSCRIPTION );
-        String interestsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_INTEREST );
+        String subscriptionsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_SUBSCRIPTION, strAccountId );
+        String interestsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_INTEREST, strAccountId );
 
         try
         {
@@ -641,32 +346,59 @@ public class DolistProvider implements IBroadcastProvider
     }
 
     /**
-     * get map from sub datas
-     * 
-     * @param sub
-     * @return the map
+     * init
+     * @param strAccountId
+     * @throws Exception
      */
-    public Map<String, String> subToMap( Subscription sub, Map<String, String> mapIdName )
+    private void initMapIdNameArrondissement( String strAccountId ) throws Exception
     {
-        Map<String, String> mapSubData = new HashMap<>( );
-        String subscriptionDolistId = StringUtils.EMPTY;
+        ObjectMapper mapper = new ObjectMapper( );
 
-        for ( Map.Entry<String, String> subMapIdName : _subscriptionsMapIdName.entrySet( ) )
+        String subscriptionsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_SUBSCRIPTION, strAccountId );
+        String interestsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_INTEREST, strAccountId );
+
+        try
         {
-            if ( subMapIdName.getValue( ).equals( sub.getName( ) ) )
+            // Get subscriptions data (id and name)
+            JsonNode nodes = mapper.readTree( subscriptionsInJson );
+
+            JsonNode itemListNode = nodes.get( JSON_NODE_ITEMLIST );
+
+            for ( JsonNode node : itemListNode )
             {
-                subscriptionDolistId = subMapIdName.getKey( );
-                continue;
+                if ( node.get( "IsEnabled" ).asBoolean( ) )
+                {
+                    _subscriptionsMapIdName.put( node.get( "ID" ).asText( ), node.get( JSON_NODE_SUB_NAME ).asText( ) );
+                }
+            }
+
+            // Get interests data (id and name)
+            nodes = mapper.readTree( interestsInJson );
+
+            itemListNode = nodes.get( JSON_NODE_ITEMLIST );
+
+            for ( JsonNode node : itemListNode )
+            {
+                if ( node != null )
+                {
+                    JsonNode intersts = node.get( JSON_NODE_ITEM_INTERESTLIST );
+                    for ( JsonNode interest : intersts )
+                    {
+                        if ( !interest.has( JSON_NODE_INTEREST_IS_ACTIVE ) )
+                        {
+                            _interestsMapIdName.put( interest.get( "ID" ).asText( ), interest.get( JSON_NODE_INTEREST_NAME ).asText( ) );
+                        }
+                    }
+                }
             }
         }
-
-        if ( sub.isActive( ) )
-            mapSubData.put( subscriptionDolistId, JSON_NODE_SUB_SUBSCRIBED );
-        else
-            mapSubData.put( subscriptionDolistId, JSON_NODE_SUB_UNSUBSCRIBED );
-
-        return mapSubData;
+        catch( Exception e )
+        {
+            String strError = "Error occured while mapping Ids and Names of subscriptions.";
+            AppLogService.error( strError + e.getMessage( ), e );
+        }
     }
+    
 
     /**
      * get subscription dolist ID
@@ -687,6 +419,42 @@ public class DolistProvider implements IBroadcastProvider
         }
 
         return subscriptionDolistId;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<JSONObject> getUserSubscriptionIds( String strUserId, String strAccountId )
+    {        
+        ObjectMapper mapper = new ObjectMapper( );
+        List<JSONObject> jsonLsit = new ArrayList<>();
+        
+        try
+        {
+            String userDolistSubscriptionsList = _dolistAPI.getUserSubscriptions( strUserId, DolistConstants.TYPE_SUBSCRIPTION, strAccountId );
+
+            JsonNode nodes = mapper.readTree( userDolistSubscriptionsList );
+            JsonNode itemListNode = nodes.get( JSON_NODE_ITEMLIST );
+                    
+            if ( itemListNode != null )
+            {
+                for ( JsonNode itemNode : itemListNode )
+                {
+                    if( itemNode.get( "Status").asText( ).equals( "Subscribed" )  )
+                    {
+                        JSONObject json = new JSONObject();
+                        json.put( "id", itemNode.get( JSON_NODE_SUB_ID ).asInt( )  );
+                        
+                        jsonLsit.add( json );
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            AppLogService.error( "Error occured while getting the list of user subscriptions ids :", e.getMessage( ) );
+        }
+        
+        return jsonLsit;
     }
 
 }

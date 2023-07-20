@@ -33,15 +33,16 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.business.providers.mock;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONObject;
+
 import fr.paris.lutece.plugins.broadcastproxy.business.Feed;
 import fr.paris.lutece.plugins.broadcastproxy.business.IBroadcastProvider;
 import fr.paris.lutece.plugins.broadcastproxy.business.Subscription;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MockProvider implements IBroadcastProvider
 {
@@ -68,52 +69,15 @@ public class MockProvider implements IBroadcastProvider
         return "Mock";
     }
 
-    @Override
-    public String getUserSubscriptionsAsJson( String userId )
-    {
-        return DEFAULT_USER_SUBSCRIPTIONS_JSON;
-    }
 
     public boolean updateSubscribtions( List<Subscription> subscriptionsList )
     {
         return true;
     }
 
-    @Override
-    public boolean subscribe( String userId, String subscriptionId, String typeSubscription )
-    {
-        return true;
-    }
 
     @Override
-    public boolean unsubscribe( String userId, String subscriptionId, String typeSubscription )
-    {
-        return true;
-    }
-
-    @Override
-    public Map<String, Map<String, List<Subscription>>> getUserSubscriptionsAsList( String userId ) throws Exception
-    {
-        Map<String, Map<String, List<Subscription>>> map = new HashMap<String, Map<String, List<Subscription>>>( );
-
-        /*
-         * Subscription sub1 = new Subscription( ); sub1.setId( "EXAMPLE_ONE" ); sub1.setUserId( userId ); sub1.setActive( false ); sub1.setType(
-         * typeSubscription ); Map<String, String> mapDatas = new HashMap<>( ); mapDatas.put( "T1", "theme1" ); mapDatas.put( "T2", "theme2" ); sub1.setData(
-         * mapDatas );
-         * 
-         * Subscription sub2 = new Subscription( ); sub2.setId( "EXAMPLE_TWO" ); sub2.setUserId( userId ); sub2.setActive( true ); sub2.setType(
-         * typeSubscription ); List<String> data = new ArrayList<>( );
-         * 
-         * List<Subscription> list = new ArrayList<>( ); list.add( sub1 ); list.add( sub2 );
-         * 
-         * //map.put(null, list);
-         */
-        return map;
-
-    }
-
-    @Override
-    public boolean update( Subscription subscription ) throws Exception
+    public boolean update( Subscription subscription, String strAccountId ) throws Exception
     {
         return true;
     }
@@ -148,7 +112,7 @@ public class MockProvider implements IBroadcastProvider
     }
 
     @Override
-    public boolean updateSubscribtions( String userId, String jsonSubscriptions ) throws Exception
+    public boolean updateSubscribtions( String userId, String jsonSubscriptions, String strAccountId ) throws Exception
     {
         // TODO Auto-generated method stub
         return false;
@@ -162,10 +126,23 @@ public class MockProvider implements IBroadcastProvider
     }
 
     @Override
-    public List<String> getSubscriptionViewOrder( )
+    public String getAllSubscriptionByGroup( String typeSubscription, String strAccountId )
     {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
+    public List<JSONObject> getUserSubscriptionIds( String strUserId, String strAccountId )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean updateArrondissementSubscribtions( String userId, String jsonSubscriptions, String strAccountId ) throws Exception
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

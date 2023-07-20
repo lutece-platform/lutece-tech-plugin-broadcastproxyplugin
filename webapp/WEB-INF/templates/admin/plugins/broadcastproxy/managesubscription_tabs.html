@@ -1,0 +1,10 @@
+<#macro tabs2 tab >
+<@tabs>
+	<@tabList>
+			<li <#if tab="subscriptionlink">class="active"</#if>>
+				<@aButton href="jsp/admin/plugins/broadcastproxy/ManageSubscriptionLinks.jsp">#i18n{broadcastproxy.manage_subscriptionlinks.pageTitle}</@aButton>
+			</li>
+	</@tabList>
+</@tabs>
+
+</#macro>
