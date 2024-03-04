@@ -353,7 +353,9 @@ public class DolistProvider implements IBroadcastProvider
     private void initMapIdNameArrondissement( String strAccountId ) throws Exception
     {
         ObjectMapper mapper = new ObjectMapper( );
-
+        _interestsMapIdName = new HashMap<>( );
+        _subscriptionsMapIdName = new HashMap<>( );
+        
         String subscriptionsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_SUBSCRIPTION, strAccountId );
         String interestsInJson = _dolistAPI.getAllSubscriptions( DolistConstants.TYPE_INTEREST, strAccountId );
 

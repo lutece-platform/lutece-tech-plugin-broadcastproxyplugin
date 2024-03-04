@@ -99,6 +99,7 @@ public class DolistAPI
     // Instance variables
     private String _userEmail;
     private String _contactId;
+    private String _accountId;
 
     /**
      * get ContactID
@@ -113,7 +114,7 @@ public class DolistAPI
         if ( userEmail == null )
             return null;        
 
-        if ( userEmail.equals( _userEmail ) )
+        if ( userEmail.equals( _userEmail ) && strAccountId.equals( _accountId ) )
             return _contactId;
 
         ObjectMapper mapper = new ObjectMapper( );
@@ -151,6 +152,7 @@ public class DolistAPI
                 // set instance variables
                 _userEmail = userEmail;
                 _contactId = strContactId;
+                _accountId = strAccountId;
             }
 //            else if ( Integer.parseInt( nodes.get( "Count" ).asText( ) ) > 1 ) // There is some accounts with the same email
 //            {
@@ -343,7 +345,7 @@ public class DolistAPI
         String userDolistId = getDolistContactId( userEmail, strAccountId );
 
         // if Email (user) does not exist ==> Create user
-        if ( userDolistId.equals( "" ) )
+        if ( userDolistId.equals( "" ) || userDolistId.equals( "0" )  )
             userDolistId = addUser( userEmail, strAccountId );
 
         // Set Headers
