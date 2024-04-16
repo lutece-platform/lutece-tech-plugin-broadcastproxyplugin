@@ -55,7 +55,6 @@ public class SubscriptionLink implements Serializable
     @NotEmpty( message = "#i18n{broadcastproxy.validation.subscriptionlink.Description.notEmpty}" )
     private String _strDescription;
     
-    @NotEmpty( message = "#i18n{broadcastproxy.validation.subscriptionlink.Frequency.notEmpty}" )
     private String _strFrequency;
     
     private String _strGroup;
