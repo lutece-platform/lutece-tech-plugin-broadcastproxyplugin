@@ -33,9 +33,7 @@
  */
 package fr.paris.lutece.plugins.broadcastproxy.service;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,12 +59,11 @@ public class BroadcastDaemon extends Daemon
     // Constants
     private static final String JSON_NODE_ITEMLIST              = AppPropertiesService.getProperty( "dolist.jsonNode.ItemList" );
     private static final String JSON_NODE_GROUP                 = AppPropertiesService.getProperty( "dolist.jsonNode.item.Group" );
-    private static final String JSON_NODE_GROUP_ID              = AppPropertiesService.getProperty( "dolist.jsonNode.item.GroupId" );
     private static final String JSON_NODE_INTEREST_LIST         = AppPropertiesService.getProperty( "dolist.jsonNode.item.InterestList" );
     private static final String JSON_NODE_GROUP_NAME            = AppPropertiesService.getProperty( "dolist.jsonNode.group.Name" );
     private static final String JSON_NODE_DELETE_DATE           = AppPropertiesService.getProperty( "dolist.jsonNode.interest.isActive" );
     private static final String PROPERTY_ACCOUNT_ID             = AppPropertiesService.getProperty( "dolist.CONSTANTE_ACCOUNT_ID" );
-    private static final String PROPERTY_GROUP_IDS              = AppPropertiesService.getProperty( "dolist.list.group_ids" );
+
     
     @Override
     public void run( )
@@ -86,8 +83,7 @@ public class BroadcastDaemon extends Daemon
         ObjectMapper mapper = new ObjectMapper( );
         String groupName = StringUtils.EMPTY;
         Map<String, String> subscriptionsMapIdName = new HashMap<>( );
-        List<String> listGroupIds = Arrays.asList( PROPERTY_GROUP_IDS.split( ";" ) );
-
+        
         try
         {
             // Get subscriptions data (id and name)
@@ -113,22 +109,18 @@ public class BroadcastDaemon extends Daemon
                 {
                     JsonNode groupData = itemNode.get( JSON_NODE_GROUP );                    
                     
-                    if( listGroupIds.contains( groupData.get( JSON_NODE_GROUP_ID ).asText( ) ) )
+                    groupName = groupData.get( JSON_NODE_GROUP_NAME ).asText( );
+
+                    if ( groupName.substring( 0, 1 ).equals( "[" ) && groupName.substring( groupName.length( ) - 1, groupName.length( ) ).equals( "]" ) && groupName.length( ) > 2 )
                     {
-                        groupName = groupData.get( JSON_NODE_GROUP_NAME ).asText( );
-
-                        if ( groupName.substring( 0, 1 ).equals( "[" ) && groupName.substring( groupName.length( ) - 1, groupName.length( ) ).equals( "]" ) && groupName.length( ) > 2 )
-                        {
-                            String[] splitDlGrName = groupName.split( "\\]" );
-                            groupName = splitDlGrName[0].substring( 1, splitDlGrName[0].length( ) );
-                        }
-                        
-                        for ( JsonNode node : itemNode.get( JSON_NODE_INTEREST_LIST ) )
-                        {
-                            createSubscriptionLink( subscriptionsMapIdName, groupName, node  );
-                        }
+                        String[] splitDlGrName = groupName.split( "\\]" );
+                        groupName = splitDlGrName[0].substring( 1, splitDlGrName[0].length( ) );
                     }
-
+                    
+                    for ( JsonNode node : itemNode.get( JSON_NODE_INTEREST_LIST ) )
+                    {
+                        createSubscriptionLink( subscriptionsMapIdName, groupName, node  );
+                    }
                 }
             }
         } catch ( Exception e )
