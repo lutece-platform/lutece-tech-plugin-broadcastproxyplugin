@@ -51,11 +51,13 @@ import fr.paris.lutece.plugins.broadcastproxy.business.SubscriptionLink;
 import fr.paris.lutece.plugins.broadcastproxy.business.SubscriptionLinkHome;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
 import fr.paris.lutece.portal.service.file.FileService;
+import fr.paris.lutece.portal.service.file.FileServiceException;
 import fr.paris.lutece.portal.service.fileimage.FileImagePublicService;
 import fr.paris.lutece.portal.service.message.AdminMessage;
 import fr.paris.lutece.portal.service.message.AdminMessageService;
 import fr.paris.lutece.portal.service.security.SecurityTokenService;
 import fr.paris.lutece.portal.service.util.AppException;
+import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
@@ -267,7 +269,11 @@ public class SubscriptionLinkJspBean extends AbstractManageSubscriptionJspBean <
         
         if ( StringUtils.isNumeric( _subscriptionlink.getPictogramme( ) ) )
         {
-            FileService.getInstance( ).getFileStoreServiceProvider( ).delete( _subscriptionlink.getPictogramme( ) );
+            try {
+				FileService.getInstance( ).getFileStoreServiceProvider( ).delete( _subscriptionlink.getPictogramme( ) );
+			} catch (FileServiceException e) {
+				AppLogService.error(e);
+			}
         }
         
         SubscriptionLinkHome.remove( nId );
@@ -360,9 +366,14 @@ public class SubscriptionLinkJspBean extends AbstractManageSubscriptionJspBean <
 
         if ( StringUtils.isNumeric( strIdPictogramme ) )
         {
-            FileService.getInstance( ).getFileStoreServiceProvider( ).delete( strIdPictogramme );
-            _subscriptionlink.setPictogramme( StringUtils.EMPTY );
-            SubscriptionLinkHome.update( _subscriptionlink );
+            try {
+				FileService.getInstance( ).getFileStoreServiceProvider( ).delete( strIdPictogramme );
+				_subscriptionlink.setPictogramme( StringUtils.EMPTY );
+	            SubscriptionLinkHome.update( _subscriptionlink );
+			} catch (FileServiceException e) {
+				AppLogService.error(e);
+				return "{\"status\":\"failed\"}";
+			}            
         }
 
         return "{\"status\":\"success\"}";
